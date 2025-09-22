@@ -3,8 +3,7 @@
 
 # Build tools
 NASM = nasm -f bin 
-N = 512 
-DUMP_SIZE = $(shell echo $$(($(N) + 512)))
+
 
 # =============================================================================
 # Tasks
@@ -27,14 +26,11 @@ clean:
 	mkdir .tmp
 
 test: build
-		
-	echo "pmemsave 0x7C00 $(DUMP_SIZE) bar" > qemu_commands	
-	qemu-system-i386 -cpu pentium2 -m 1g -fda boot.img -monitor stdio -device VGA < qemu_commands
-	hexdump -C bar
-	hexdump -C boot.img	
+	qemu-system-i386 -cpu pentium2 -m 1g -fda boot.img -monitor stdio -device VGA
 
 debug: build
 	qemu-system-i386 -cpu pentium2 -m 1g -fda boot.img -monitor stdio -device VGA -s -S &
-	gdb
+	sleep 2
+	gdb -x .gdbinit
 
 .PHONY: all build clean test debug
