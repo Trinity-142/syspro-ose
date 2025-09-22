@@ -2,9 +2,8 @@
 # Variables
 
 # Build tools
-NASM = nasm -f bin 
-KERNEL_SIZE = 512
-DUMP_SIZE = $(shell echo $$(($(KERNEL_SIZE) + 512)))
+KERNEL_SIZE = 512 
+NASM = nasm -f bin -dKERNEL_SIZE=$(KERNEL_SIZE) 
 
 # =============================================================================
 # Tasks
@@ -17,7 +16,7 @@ all: clean build test
 boot.img: .tmp/boot.bin
 	dd if=/dev/zero of=boot.img bs=1024 count=1440
 	dd if=.tmp/boot.bin of=boot.img conv=notrunc
-	dd if=foo of=boot.img conv=notrunc bs=512 seek=1 count=800
+	dd if=foo of=boot.img conv=notrunc seek=1
 
 build: boot.img
 
