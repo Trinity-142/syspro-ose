@@ -1,22 +1,21 @@
 [BITS 16]
 
-%define NUM_OF_SECTORS ((KERNEL_SIZE / 512) + 1)
+%define NUM_OF_SECTORS ((KERNEL_SIZE) / 512 + 1) 
 %define MAX_SECTOR_NUM 18
 %define MAX_HEAD_NUM 1
 %define MAX_CYLINDER_NUM 79
 
 cli
 
-; stack setup
-mov ax, 0x7C0
-mov ss, ax
-xor sp, sp
-
-; read buffer setup
-mov ax, 0x7E0
-mov es, ax
+; stack init 
 xor ax, ax
-mov bx, ax
+mov ss, ax
+mov sp, 0x7c00
+
+; read buffer init 
+mov si, 0x7E0
+mov es, si 
+xor bx, bx
 
 ; reading from floppy disk
 mov al, 1   ; number of sectors
@@ -33,7 +32,7 @@ jc disk_read_error
 dec di
 jz loop
 
-mov si, es
+; shift read buffer by 512 bytes (1 sector)
 add si, 0x20
 mov es, si
 

@@ -27,8 +27,10 @@ clean:
 
 test: build
 	qemu-system-i386 -cpu pentium2 -m 1g -fda boot.img -monitor stdio -device VGA	
-	hexdump -C boot.img
-	hexdump -C bar
+	hexdump -C boot.img > boot_hex 
+	hexdump -C bar > bar_hex 
+	cat boot_hex
+	cat bar_hex	
 
 debug: build
 	qemu-system-i386 -cpu pentium2 -m 1g -fda boot.img -monitor stdio -device VGA -s -S &
