@@ -26,32 +26,32 @@ xor dh, dh  ; head number
 mov di, NUM_OF_SECTORS
 
 read:
-mov ah, 0x2
-int 0x13
-jc disk_read_error
-dec di
-jz loop
+	mov ah, 0x2
+	int 0x13
+	jc disk_read_error
+	dec di
+	jz loop
 
-; shift read buffer by 512 bytes (1 sector)
-add si, 0x20
-mov es, si
+	; shift read buffer by 512 bytes (1 sector)
+	add si, 0x20
+	mov es, si
 
-; change sector
-inc cl
-cmp cl, MAX_SECTOR_NUM 
-jle read
-mov cl, 1 
+	; change sector
+	inc cl
+	cmp cl, MAX_SECTOR_NUM 
+	jle read
+	mov cl, 1 
 
-; change head 
-inc dh
-cmp dh, MAX_HEAD_NUM
-jle read
-xor dh, dh
+	; change head 
+	inc dh
+	cmp dh, MAX_HEAD_NUM
+	jle read
+	xor dh, dh
 
-; change cylinder
-inc ch
-cmp ch, MAX_CYLINDER_NUM
-jle read
+	; change cylinder
+	inc ch
+	cmp ch, MAX_CYLINDER_NUM
+	jle read
 
 disk_read_overflow:
   mov ah, 0xE
@@ -63,7 +63,7 @@ disk_read_error:
   mov ah, 0xE
   mov al, 'E'
   int 0x10
-  hlt 
+  hlt
 
 loop:
   jmp loop
