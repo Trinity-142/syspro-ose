@@ -10,7 +10,11 @@ cli
 ; stack init 
 xor ax, ax
 mov ss, ax
-mov sp, 0x7c00
+mov sp, 0x7C00
+
+; data init
+mov si, 0x7C0
+mov ds, si
 
 ; read buffer init 
 mov si, 0x7E0
@@ -30,7 +34,7 @@ read:
 	int 0x13
 	jc disk_read_error
 	dec di
-	jz loop
+	jz continue 
 
 	; shift read buffer by 512 bytes (1 sector)
 	add si, 0x20
@@ -65,8 +69,52 @@ disk_read_error:
   int 0x10
   hlt
 
-loop:
-  jmp loop
+
+continue:
+
+lgdt [gdt_descriptor]
+
+cld
+
+mov eax, cr0 
+or eax, 0x1
+mov cr0, eax
+[BITS 32]
+
+; segment registers init
+jmp CODE:next
+next:
+	mov eax, DATA	
+	mov ds, eax 
+	mov ss, eax 
+	mov es, eax
+	mov fs, eax 
+	mov gs, eax 
+	mov esp, 0x7C00
+	and esp, 0xFFFFFFF0
+
+[EXTERN kernel_entry]
+jmp CODE:kernel_entry
+
+gdt_descriptor:
+	dw 0x17
+	dd gdt
+
+align 8
+
+gdt:
+	dq 0x0
+  dq 0x00CF9A000000FFFF
+	dq 0x00CF92000000FFFF
+
+CODE equ 0b01000
+DATA equ 0b10000
+
+[BITS 32]
+
+[GLOBAL endless_loop]
+endless_loop:
+	jmp endless_loop
 
 times 510-($-$$) db 0
 dw 0xAA55
