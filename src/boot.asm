@@ -13,7 +13,8 @@ mov ss, ax
 mov sp, 0x7C00
 
 ; data init
-mov si, 0x7C0
+;mov si, 0x7C0
+xor si, si
 mov ds, si
 
 ; read buffer init 
@@ -79,10 +80,10 @@ cld
 mov eax, cr0 
 or eax, 0x1
 mov cr0, eax
-[BITS 32]
 
 ; segment registers init
 jmp CODE:next
+[BITS 32]
 next:
 	mov eax, DATA	
 	mov ds, eax 
@@ -104,7 +105,7 @@ align 8
 
 gdt:
 	dq 0x0
-  dq 0x00CF9A000000FFFF
+	dq 0x00CF9A000000FFFF
 	dq 0x00CF92000000FFFF
 
 CODE equ 0b01000
