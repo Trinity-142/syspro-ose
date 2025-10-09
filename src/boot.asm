@@ -73,10 +73,13 @@ disk_read_error:
 
 continue:
 
+; load gdtr
 lgdt [gdt_descriptor]
 
+; clear df flag
 cld
 
+; set protection enable flag
 mov eax, cr0 
 or eax, 0x1
 mov cr0, eax
@@ -91,27 +94,49 @@ next:
 	mov es, eax
 	mov fs, eax 
 	mov gs, eax 
-	mov esp, 0x7C00
 	and esp, 0xFFFFFFF0
 
+; jmp to C
 [EXTERN kernel_entry]
 jmp CODE:kernel_entry
 
+; pseudo gdt descriptor
 gdt_descriptor:
-	dw 0x17
-	dd gdt
+	dw gdt_end - gdt_start - 1 ; gdt limit
+	dd gdt_start							 ; gdt base address
 
 align 8
 
-gdt:
-	dq 0x0
-	dq 0x00CF9A000000FFFF
-	dq 0x00CF92000000FFFF
+; gdt init
+gdt_start:
+	; null descriptor
+	.null:
+		dq 0x0
 
-CODE equ 0b01000
-DATA equ 0b10000
+	; code segment descriptor
+	.gdt_code:		
+		dw 0xFFFF 			; limit[15:00]
+		dw 0x0					; base[15:00]
+		db 0x0					; base[23:16]
+		db 0b1001_1010	; segment-present flag, dpl, descriptor type flag
+										; code flags: executable, conforming, read-enable, accessed
+		db 0b1100_1111	; granularity flag, D, L flag, available flag, limit[19:16]
+		db 0x0					; base[31:24]
 
-[BITS 32]
+	; data segment descriptor
+	.gdt_data:
+		dw 0xFFFF 			; limit[15:00]
+		dw 0x0					; base[15:00]
+		db 0x0					; base[23:16]
+		db 0b1001_0010	; segment-present flag, dpl, descriptor type flag
+										; code flags: executable, E, write-enable, accessed
+		db 0b1100_1111	; granularity flag, B, L flag, available flag, limit[19:16]
+		db 0x0					; base[31:24]
+gdt_end:
+
+; segment selectors init
+CODE equ 0x8
+DATA equ 0x16 
 
 [GLOBAL endless_loop]
 endless_loop:
