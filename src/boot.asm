@@ -87,8 +87,8 @@ mov cr0, eax
 jmp CODE:next
 [BITS 32]
 next:
-    mov eax, DATA	
-    mov ds, eax 
+    mov eax, DATA       
+    :set expandtab:mov ds, eax 
     mov ss, eax 
     mov es, eax
     mov fs, eax 
@@ -112,23 +112,23 @@ gdt_start:
     .null: dq 0x0
 
     ; code segment descriptor
-    .gdt_code:		
+    .gdt_code:          
         dw 0xFFFF       ; limit[15:00]
         dw 0x0          ; base[15:00]
         db 0x0          ; base[23:16]
         db 0b1001_1010  ; segment-present flag, dpl, descriptor type flag
                         ; code flags: executable, conforming, read-enable, accessed
-	db 0b1100_1111  ; granularity flag, D, L flag, available flag, limit[19:16]
-	db 0x0          ; base[31:24]
+        db 0b1100_1111  ; granularity flag, D, L flag, available flag, limit[19:16]
+        db 0x0          ; base[31:24]
 
     ; data segment descriptor
     .gdt_data:
         dw 0xFFFF       ; limit[15:00]
-	dw 0x0          ; base[15:00]
-	db 0x0          ; base[23:16]
-	db 0b1001_0010  ; segment-present flag, dpl, descriptor type flag
+        dw 0x0          ; base[15:00]
+        db 0x0          ; base[23:16]
+        db 0b1001_0010  ; segment-present flag, dpl, descriptor type flag
                         ; code flags: executable, E, write-enable, accessed
-	db 0b1100_1111  ; granularity flag, B, L flag, available flag, limit[19:16]
+        db 0b1100_1111  ; granularity flag, B, L flag, available flag, limit[19:16]
         db 0x0          ; base[31:24]
 gdt_end:
 
