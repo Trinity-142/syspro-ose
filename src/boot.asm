@@ -88,7 +88,7 @@ jmp CODE:next
 [BITS 32]
 next:
     mov eax, DATA       
-    :set expandtab:mov ds, eax 
+    mov ds, eax 
     mov ss, eax 
     mov es, eax
     mov fs, eax 
