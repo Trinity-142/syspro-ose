@@ -136,6 +136,11 @@ gdt_end:
 CODE equ 0x8
 DATA equ 0x10 
 
+[GLOBAL cli]
+cli:
+    cli
+    ret 
+
 [GLOBAL endless_loop]
 endless_loop:
     jmp endless_loop
