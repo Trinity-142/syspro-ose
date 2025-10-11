@@ -134,7 +134,7 @@ gdt_end:
 
 ; segment selectors init
 CODE equ 0x8
-DATA equ 0x16 
+DATA equ 0x10 
 
 [GLOBAL endless_loop]
 endless_loop:
