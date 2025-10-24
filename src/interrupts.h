@@ -1,16 +1,17 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
-
-#define INTERRUPT_GATE 0b110
-#define TRAP_GATE 0b111
 #include <stdalign.h>
+#include <stdbool.h>
 
 #include "types.h"
 
-struct idt_ptr {
-    u16 limit;
-    u32 base;
-} __attribute__((packed));
+#define INTERRUPT_GATE 0b110
+#define TRAP_GATE 0b111
+#define TRAMPOLINE_SIZE 8
+
+typedef struct {
+    u8 code[TRAMPOLINE_SIZE];
+} Trampoline;
 
 typedef struct {
     u32 edi,
@@ -30,7 +31,7 @@ typedef struct {
     u32 eip;
     u32 cs;
     u32 eflags;
-} context;
+} Context;
 
 typedef struct {
     u16 offset_0_15: 16;
@@ -43,9 +44,9 @@ typedef struct {
     u8 dpl: 2;
     u8 p: 1;
     u16 offset_16_31: 16;
-} interrupt_desc;
+} InterruptDesc;
 
-void universal_handler(const context* ctx);
+void universal_handler(const Context* ctx);
 void init_interrupts();
 
 #endif

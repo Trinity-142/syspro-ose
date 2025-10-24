@@ -16,13 +16,15 @@ all: clean build test
 .tmp/%.o: src/%.c
 		gcc -DKERNEL_SIZE=$(KERNEL_SIZE) $(CFLAGS) -c $< -o $@
 
-.tmp/boot.o: src/boot.asm
-		nasm -felf -dKERNEL_SIZE=$(KERNEL_SIZE) src/boot.asm -o .tmp/boot.o
+.tmp/%.o: src/%.asm
+		nasm -felf -dKERNEL_SIZE=$(KERNEL_SIZE) $< -o $@
 
 C_SOURCES = $(wildcard src/*.c)
 C_OBJECTS = $(patsubst src/%.c, .tmp/%.o, $(C_SOURCES))
-.tmp/os.elf: .tmp/boot.o $(C_OBJECTS) link.ld
-		ld -m elf_i386 .tmp/boot.o $(C_OBJECTS) -T link.ld -o .tmp/os.elf
+ASM_SOURCES = $(wildcard src/*.asm)
+ASM_OBJECTS = $(patsubst src/%.asm, .tmp/%.o, $(ASM_SOURCES))
+.tmp/os.elf: $(ASM_OBJECTS) $(C_OBJECTS) link.ld
+		ld -m elf_i386 $(ASM_OBJECTS) $(C_OBJECTS) -T link.ld -o .tmp/os.elf
 
 .tmp/os.bin: .tmp/os.elf
 		objcopy -I elf32-i386 -O binary .tmp/os.elf .tmp/os.bin

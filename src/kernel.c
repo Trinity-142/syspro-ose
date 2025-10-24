@@ -10,8 +10,8 @@ void kernel_entry() {
 	vga_clear_screen();
 	init_interrupts();
 	set_gprs();
-	//divide_by_zero();
+	division_by_zero();
 	//syscall();
-	sti();
+	//sti();
 	endless_loop();
 }

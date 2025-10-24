@@ -19,32 +19,32 @@ bool has_error_code(u32 vector) {
     return false;
 }
 
-u8* setup_trampolines() {
-    u8* trampolines = malloc_undead(8 * 256, 8);
-    for (u32 vector = 0; vector < 256; ++vector) {
-        u8* trampoline = trampolines + vector * 8;
-        u32 offset = 0;
+Trampoline* setup_trampolines() {
+    Trampoline* trampolines = malloc_undead(sizeof(Trampoline) * 256, 8);
+    for (u16 vector = 0; vector < 256; ++vector) {
+        Trampoline* trampoline = &trampolines[vector];
+        u8 offset = 0;
         if (!has_error_code(vector)) {
-            trampoline[offset++] = 0x50;
+            trampoline->code[offset++] = 0x50;
         }
-        trampoline[offset++] = 0x6A;   // push
-        trampoline[offset++] = vector; // immediate = vector
-        trampoline[offset++] = 0xE9;   // jmp
-        const u32 collect_context_offset = (u32) collect_context - (u32) (trampoline + offset + 4); // collect_context
-        *(u32*) (trampoline + offset) = collect_context_offset;
+        trampoline->code[offset++] = 0x6A;   // push
+        trampoline->code[offset++] = vector; // immediate = vector
+        trampoline->code[offset++] = 0xE9;   // jmp
+        const u32 collect_context_offset = (u32) collect_context - (u32) &trampoline->code[offset + 4]; // offset to collect_context
+        *(u32*) &trampoline->code[offset] = collect_context_offset;
         offset += 4;
-        assert(offset <= 8);
+        assert(offset <= TRAMPOLINE_SIZE);
     }
     return trampolines;
 }
 
-void setup_idt(const u8* trampolines) {
-    assert(sizeof(interrupt_desc) == 8);
-    interrupt_desc *idt = malloc_undead(sizeof(interrupt_desc) * 256, 8);
+void setup_idt(const Trampoline* trampolines) {
+    assert(sizeof(InterruptDesc) == 8);
+    InterruptDesc *idt = malloc_undead(sizeof(InterruptDesc) * 256, 8);
     for (int vector = 0; vector < 256; ++vector) {
-        interrupt_desc desc;
-        const u32 trampoline = (u32) (trampolines + vector * 8);
-        desc.offset_0_15 = trampoline & 0xFFFF;
+        InterruptDesc desc;
+        u32 handler_addr = (u32) trampolines[vector].code;
+        desc.offset_0_15 = handler_addr & 0xFFFF;
         desc.segment_selector = 8;
         desc.reserved = 0;
         desc.fixed1 = 0;
@@ -53,23 +53,19 @@ void setup_idt(const u8* trampolines) {
         desc.fixed2 = 0;
         desc.dpl = 0;
         desc.p = 1;
-        desc.offset_16_31 = trampoline >> 16 & 0xFFFF;
+        desc.offset_16_31 = handler_addr >> 16 & 0xFFFF;
         idt[vector] = desc;
     }
-    struct idt_ptr ptr = {
-        .limit = 256 * sizeof(interrupt_desc) - 1,
-        .base = (u32)idt
-    };
-    u64 pseudo_desc = (u64) idt << 16 | 256 * sizeof(interrupt_desc) - 1;
-    lidt(&ptr);
+    u64 pseudo_desc = (u64) idt << 16 | 256 * sizeof(InterruptDesc) - 1;
+    lidt(&pseudo_desc);
 }
 
 void init_interrupts() {
     setup_idt(setup_trampolines());
 }
 
-void universal_handler(const context *ctx) {
-    assert(sizeof(context) == 68);
+void universal_handler(const Context *ctx) {
+    assert(sizeof(Context) == 68);
     kernel_panic("Kernel panic: unhandled interrupt #%d at 0x%x:0x%x\n\n"
                  "Registers:\n"
                  "  EAX: 0x%x, ECX: 0x%x, EDX: 0x%x, EBX: 0x%x\n"
