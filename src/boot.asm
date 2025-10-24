@@ -136,6 +136,37 @@ gdt_end:
 CODE equ 0x8
 DATA equ 0x10 
 
+[EXTERN universal_handler]
+[GLOBAL collect_context]
+collect_context:
+    push ds
+    push es
+    push fs
+    push gs
+    pusha
+
+    cld
+    mov eax, DATA
+    mov ds, eax
+    mov es, eax
+    mov fs, eax
+    mov gs, eax
+
+    mov ebx, esp
+    and esp, 0xFFFFFFF0
+    sub esp, 12
+    push ebx
+    call universal_handler
+
+    mov esp, ebx
+    popa
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    add esp, 8
+    iret
+
 [GLOBAL cli]
 cli:
     cli
@@ -144,6 +175,38 @@ cli:
 [GLOBAL endless_loop]
 endless_loop:
     jmp endless_loop
+
+[GLOBAL lidt]
+lidt:
+    mov eax, [esp+4]
+    lidt [eax]
+    ret
+
+[GLOBAL set_gprs]
+set_gprs:
+    mov eax, 0
+    mov ecx, 1
+    mov edx, 2
+	mov ebx, 3
+	mov ebp, 4
+	mov esi, 5
+	mov edi, 6
+	ret
+
+[GLOBAL divide_by_zero]
+divide_by_zero:
+    div eax
+    ret
+
+[GLOBAL syscall]
+syscall:
+    int 8 
+    ret
+
+[GLOBAL sti]
+sti:
+    sti
+    ret
 
 times 510-($-$$) db 0
 dw 0xAA55
