@@ -9,11 +9,7 @@ void kernel_entry() {
 
 	for (u32 i = 1; i; ++i) {
 		u8* obj = malloc_undead(i*2, i);
-		printf("%d byte object with %d byte alignment successfully allocated at address %x\n", i*2, i, (u32) obj, (u32) obj);
-	}
-
-	for (u32 i = 1; i; ++i) {
-		printf("%d ", i);
+		printf("%d byte object with %d byte alignment successfully allocated at address %x\n", i*2, i, (u32) obj);
 	}
 	endless_loop();
 }
