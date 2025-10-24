@@ -9,6 +9,11 @@
 static u32 x = 0;
 static u32 y = 0;
 
+void set_cursor(u32 X, u32 Y) {
+    x = X;
+    y = Y;
+}
+
 void fixscreen() {
     if (x >= VGA_WIDTH) {
         x = 0;
@@ -17,13 +22,21 @@ void fixscreen() {
 
     while (y >= VGA_HEIGHT) {
         vga_scroll_down();
-        y -= 1;
+        y--;
     }
 }
 
 void putchar(char c) {
-    vga_print_char(c, x, y);
-    x++;
+    if (c == '\n') {
+        if (x == 0) return;
+        y++;
+        x = 0;
+    }
+    else if (c == '\r') x = 0;
+    else {
+        vga_print_char(c, x, y);
+        x++;
+    }
     fixscreen();
 }
 
@@ -38,15 +51,23 @@ void print_unsigned(u32 number, u32 radix) {
     u32 i = 32; 
     string[i] = '\0';
 
-    do {
+    while (number) {
         assert(i);
         u32 digit = number % radix;
         number /= radix;
         string[--i] = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
-    } while (number); 
-    
+    }
     print_string(&string[i]);
 }
+
+void print_signed(i32 number) {
+    if (number < 0) {
+        putchar('-');
+        number *= -1;
+    }
+    print_unsigned(number, 10);
+}
+
 
 void init_printer() {
     vga_clear_screen();
@@ -62,16 +83,17 @@ void vprintf(const char* fmt, va_list args) {
             switch (*c) {
                 case 'd': {
                     i32 number = va_arg(args, i32);
-                    if (number < 0) {
-                        putchar('-');
-                        number *= -1;
-                    }
-                    print_unsigned(number, 10);
+                    print_signed(number);
                     break;
                 }
                 case 'x': {
                     u32 number = va_arg(args, u32);
                     print_unsigned(number, 16);
+                    break;
+                }
+                case 'b': {
+                    u32 number = va_arg(args, u32);
+                    print_unsigned(number, 2);
                     break;
                 }
                 case 'c': {
@@ -95,15 +117,6 @@ void vprintf(const char* fmt, va_list args) {
 
         } else {
             switch (*c) {
-                case '\n': {
-                    x = 0;
-                    y += 1;
-                    fixscreen();
-                    break;
-                }
-                case '\r':
-                    x = 0;
-                    break;
                 case '%':
                     percent = true;
                     break;

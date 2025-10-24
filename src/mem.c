@@ -2,16 +2,17 @@
 #include "types.h"
 
 void* memmove(void* dst, const void* src, size_t n) {
+    if (dst == src) return dst;
     u8* d = dst;
     const u8* s = src;
-    if ((size_t) dst < (size_t) src) {
-        for (size_t i = 0; i < n; ++i) {
+    if (dst < src) {
+        for (u32 i = 0; i < n; ++i) {
             d[i] = s[i];
         }
     }
     else {
-        for (size_t i = 0; i < n; ++i) {
-            d[n - i - 1] = s[i];
+        for (u32 i = n; i > 0; --i) {
+            d[i - 1] = s[i - 1];
         } 
     }
     return d;
