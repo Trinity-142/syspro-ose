@@ -51,12 +51,12 @@ void print_unsigned(u32 number, u32 radix) {
     u32 i = 32; 
     string[i] = '\0';
 
-    while (number) {
+    do {
         assert(i);
         u32 digit = number % radix;
         number /= radix;
         string[--i] = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
-    }
+    } while (number);
     print_string(&string[i]);
 }
 
