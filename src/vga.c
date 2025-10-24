@@ -2,10 +2,12 @@
 #include "mem.h"
 #include "types.h"
 #include "vga.h"
+#include "printf.h"
 
 void vga_clear_screen() {
     void* vga_buffer = (void*) VGA_BUFFER;
     memzero(vga_buffer, VGA_SIZE);
+    set_cursor(0, 0);
 }
 
 void vga_print_char(char c, size_t x, size_t y) {
