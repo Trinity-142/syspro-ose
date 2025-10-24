@@ -127,7 +127,7 @@ gdt_start:
         dw 0x0          ; base[15:00]
         db 0x0          ; base[23:16]
         db 0b1001_0010  ; segment-present flag, dpl, descriptor type flag
-                        ; code flags: executable, E, write-enable, accessed
+                        ; data flags: executable, E, write-enable, accessed
         db 0b1100_1111  ; granularity flag, B, L flag, available flag, limit[19:16]
         db 0x0          ; base[31:24]
 gdt_end:
