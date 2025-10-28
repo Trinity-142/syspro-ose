@@ -93,7 +93,6 @@ next:
     mov es, eax
     mov fs, eax 
     mov gs, eax 
-    sub esp, 12
 
 ; jmp to C
 [EXTERN kernel_entry]
