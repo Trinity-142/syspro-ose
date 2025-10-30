@@ -9,9 +9,9 @@
 static u32 x = 0;
 static u32 y = 0;
 
-void set_cursor(u32 X, u32 Y) {
-    x = X;
-    y = Y;
+void set_cursor(u32 new_x, u32 new_y) {
+    x = new_x;
+    y = new_y;
 }
 
 void fixscreen() {
@@ -125,12 +125,12 @@ void vprintf(const char* fmt, va_list args) {
                     break;
             }    
         }
-    }
+    } 
+    va_end(args);
 }
 
 void printf(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     vprintf(fmt, args);
-    va_end(args);
 }

@@ -9,8 +9,7 @@ void* memmove(void* dst, const void* src, size_t n) {
         for (u32 i = 0; i < n; ++i) {
             d[i] = s[i];
         }
-    }
-    else {
+    } else {
         for (u32 i = n; i > 0; --i) {
             d[i - 1] = s[i - 1];
         } 
