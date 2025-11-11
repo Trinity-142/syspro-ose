@@ -1,7 +1,6 @@
-#include <stddef.h>
 #include "types.h"
 
-void* memmove(void* dst, const void* src, size_t n) {
+void* memmove(void* dst, const void* src, u32 n) {
     if (dst == src) return dst;
     u8* d = dst;
     const u8* s = src;
@@ -17,9 +16,9 @@ void* memmove(void* dst, const void* src, size_t n) {
     return d;
 }    
 
-void* memzero(void* dst, size_t n) {
+void* memzero(void* dst, u32 n) {
     u8* d = dst;
-    for (size_t i = 0; i < n; ++i) {
+    for (u32 i = 0; i < n; ++i) {
         d[i] = 0;
     }
     return d;

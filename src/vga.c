@@ -1,4 +1,3 @@
-#include <stddef.h>
 #include "mem.h"
 #include "types.h"
 #include "vga.h"
@@ -10,9 +9,9 @@ void vga_clear_screen() {
     set_cursor(0, 0);
 }
 
-void vga_print_char(char c, size_t x, size_t y) {
+void vga_print_char(char c, u32 x, u32 y) {
     u8* vga_buffer = (u8*) VGA_BUFFER;
-    size_t i = BYTES_PER_SYMBOL * (y * VGA_WIDTH + x);
+    u32 i = BYTES_PER_SYMBOL * (y * VGA_WIDTH + x);
     vga_buffer[i] = c;
     vga_buffer[i + 1] = ATTRIBUTE; 
 }

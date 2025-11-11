@@ -1,6 +1,6 @@
 # =============================================================================
 # Variables
-KERNEL_SIZE ?= 4096
+KERNEL_SIZE ?= 4096 
 DEBUG ?= 0
 # Build tools
 ifeq ($(DEBUG),1)
