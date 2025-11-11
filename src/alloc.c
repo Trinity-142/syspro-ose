@@ -1,0 +1,35 @@
+#include <stddef.h>
+
+#include "panic.h"
+#include "types.h"
+#include "mem.h"
+
+#define ARENA_START (0x7C00 + KERNEL_SIZE)
+#define ARENA_END   0x80000
+#define DEFAULT_ALIGNMENT 1
+
+static u8* current = (u8*) ARENA_START;
+
+void* malloc_undead(u32 size, u32 alignment) {
+    if (size == 0) return NULL;
+    if (alignment == 0) alignment = DEFAULT_ALIGNMENT;
+
+    if ((u32) current % alignment != 0) {
+        current += alignment - (u32) current % alignment;
+    }
+
+    if ((u32) current + size >= ARENA_END) {
+        kernel_panic("Kernel panic: not enough memory to allocate %d bytes\n", size);
+    }
+
+    u8* res = current;
+    current += size;
+    return res;
+}
+
+void* calloc_undead(u32 size, u32 alignment) {
+    u8* res = malloc_undead(size, alignment);
+    if (res == NULL) return NULL;
+    memzero(res, size);
+    return res;
+}

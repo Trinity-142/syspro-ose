@@ -92,7 +92,7 @@ next:
     mov ss, eax 
     mov es, eax
     mov fs, eax 
-    mov gs, eax 
+    mov gs, eax
 
 ; jmp to C
 [EXTERN kernel_entry]
@@ -134,6 +134,11 @@ gdt_end:
 ; segment selectors init
 CODE equ 0x8
 DATA equ 0x10 
+
+[GLOBAL cli]
+cli:
+    cli
+    ret 
 
 [GLOBAL endless_loop]
 endless_loop:

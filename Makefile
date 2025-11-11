@@ -1,25 +1,36 @@
 # =============================================================================
 # Variables
-KERNEL_SIZE = 1024 
-
+KERNEL_SIZE ?= 4096 
+DEBUG ?= 0
 # Build tools
-
+ifeq ($(DEBUG),1)
+	CFLAGS = -DDEBUG -std=c99 -m32 -O2 -ffreestanding -no-pie -fno-pie -mno-sse -fno-stack-protector
+else
+	CFLAGS = -std=c99 -m32 -O2 -ffreestanding -no-pie -fno-pie -mno-sse -fno-stack-protector
+endif
 # =============================================================================
 # Tasks
 
 all: clean build test
 
-.tmp/kernel.o: src/kernel.c
-		gcc -std=c99 -m32 -O2 -ffreestanding -no-pie -fno-pie -mno-sse -fno-stack-protector -c src/kernel.c -o .tmp/kernel.o
+.tmp/%.o: src/%.c
+		gcc -DKERNEL_SIZE=$(KERNEL_SIZE) $(CFLAGS) -c $< -o $@
 
 .tmp/boot.o: src/boot.asm
 		nasm -felf -dKERNEL_SIZE=$(KERNEL_SIZE) src/boot.asm -o .tmp/boot.o
 
-.tmp/os.elf: .tmp/boot.o .tmp/kernel.o link.ld
-		ld -m elf_i386 .tmp/boot.o .tmp/kernel.o -T link.ld -o .tmp/os.elf
+C_SOURCES = $(wildcard src/*.c)
+C_OBJECTS = $(patsubst src/%.c, .tmp/%.o, $(C_SOURCES))
+.tmp/os.elf: .tmp/boot.o $(C_OBJECTS) link.ld
+		ld -m elf_i386 .tmp/boot.o $(C_OBJECTS) -T link.ld -o .tmp/os.elf
 
 .tmp/os.bin: .tmp/os.elf
 		objcopy -I elf32-i386 -O binary .tmp/os.elf .tmp/os.bin
+		@SIZE=$$(stat -c%s .tmp/os.bin); \
+		if [ $$SIZE -gt $(KERNEL_SIZE) ]; then \
+			echo "Error: Kernel size $$SIZE exceeds limit $(KERNEL_SIZE)"; \
+			exit 1; \
+	  	fi
 
 os.img: .tmp/os.bin
 		dd if=/dev/zero of=os.img bs=1024 count=1440
