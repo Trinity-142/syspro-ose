@@ -1,8 +1,6 @@
-#include "interrupts.h"
-
 #include <stdbool.h>
 
-#include "printf.h"
+#include "interrupts.h"
 #include "alloc.h"
 #include "panic.h"
 #include "types.h"
@@ -10,13 +8,19 @@
 #include "assert.h"
 
 bool has_error_code(u32 vector) {
-    const u8 has_error_code[] = {8, 10, 11, 12, 13, 14, 17, 21};
-    for (int i = 0; i < sizeof(has_error_code); ++i) {
-        if (vector == has_error_code[i]) {
+    switch (vector) {
+        case 8:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 14:
+        case 17:
+        case 21:
             return true;
-        }
+        default:
+            return false;
     }
-    return false;
 }
 
 Trampoline* setup_trampolines() {
@@ -25,12 +29,15 @@ Trampoline* setup_trampolines() {
         Trampoline* trampoline = &trampolines[vector];
         u8 offset = 0;
         if (!has_error_code(vector)) {
-            trampoline->code[offset++] = 0x50;
+            trampoline->code[offset++] = 0x50;  // push eax (fake error code)
         }
-        trampoline->code[offset++] = 0x6A;   // push
-        trampoline->code[offset++] = vector; // immediate = vector
-        trampoline->code[offset++] = 0xE9;   // jmp
-        const u32 collect_context_offset = (u32) collect_context - (u32) &trampoline->code[offset + 4]; // offset to collect_context
+        // push vector
+        trampoline->code[offset++] = 0x6A;
+        trampoline->code[offset++] = vector;
+
+        trampoline->code[offset++] = 0xE9;   // jmp opcode
+        // calculate offset from address after jmp to collect_context
+        const u32 collect_context_offset = (u32) collect_context - (u32) &trampoline->code[offset + 4]; // 4 bytes of address to jmp
         *(u32*) &trampoline->code[offset] = collect_context_offset;
         offset += 4;
         assert(offset <= TRAMPOLINE_SIZE);

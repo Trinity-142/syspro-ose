@@ -99,37 +99,6 @@ next:
 [EXTERN kernel_entry]
 jmp CODE:kernel_entry
 
-[EXTERN universal_handler]
-[GLOBAL collect_context]
-collect_context:
-    push ds
-    push es
-    push fs
-    push gs
-    pusha
-
-    cld
-    mov eax, DATA
-    mov ds, eax
-    mov es, eax
-    mov fs, eax
-    mov gs, eax
-
-    mov ebx, esp
-    and esp, 0xFFFFFFF0
-    sub esp, 12
-    push ebx
-    call universal_handler
-
-    mov esp, ebx
-    popa
-    pop gs
-    pop fs
-    pop es
-    pop ds
-    add esp, 8
-    iret
-
 ; pseudo gdt descriptor
 gdt_descriptor:
     dw gdt_end - gdt_start - 1 ; gdt limit
@@ -165,7 +134,7 @@ gdt_end:
 
 ; segment selectors init
 CODE equ 0x8
-DATA equ 0x10 
+DATA equ 0x10
 
 times 510-($-$$) db 0
 dw 0xAA55
