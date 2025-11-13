@@ -26,12 +26,15 @@ static void keyboard_handler(Context* ctx) {
 
 
 void kernel_entry() {
-	init_printer();
-    printf("kernel size = %d\n", KERNEL_SIZE);
-    printf("0x7C00 + kernel size = %x\n", 0x7c00 + KERNEL_SIZE);
-	for (u32 i = 1; ; ++i) {
-		u8* obj = malloc_undead(i*100, i);
-		printf("%d byte object with %d byte alignment successfully allocated at address %x\n", i*2, i, (u32) obj);
-	}
+	vga_clear_screen();
+	init_interrupts(INTERRUPT);
+	printf("Hllo World\n");
+	bool auto_eoi = true;
+	pic8259_init(MASTER, auto_eoi);
+	pic8259_init(SLAVE, auto_eoi);
+	pic8259_enable_device(TIMER, timer_handler);
+	pic8259_enable_device(KEYBOARD, keyboard_handler);
+	sti();
 	endless_loop();
+	//for (;;) printf("%d ", a++);
 }
