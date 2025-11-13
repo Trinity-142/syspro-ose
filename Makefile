@@ -1,7 +1,8 @@
 # =============================================================================
 # Variables
-KERNEL_SIZE ?= 4096 
+KERNEL_SIZE ?= 8192
 DEBUG ?= 0
+EXP_NUM ?= 1
 # Build tools
 ifeq ($(DEBUG),1)
 	CFLAGS = -DDEBUG -std=c99 -m32 -O2 -ffreestanding -no-pie -fno-pie -mno-sse -fno-stack-protector
@@ -14,7 +15,7 @@ endif
 all: clean build test
 
 .tmp/%.o: src/%.c
-		gcc -DKERNEL_SIZE=$(KERNEL_SIZE) $(CFLAGS) -c $< -o $@
+		gcc -DEXP_NUM=$(EXP_NUM) -DKERNEL_SIZE=$(KERNEL_SIZE) $(CFLAGS) -c $< -o $@
 
 .tmp/%.o: src/%.asm
 		nasm -felf -dKERNEL_SIZE=$(KERNEL_SIZE) $< -o $@

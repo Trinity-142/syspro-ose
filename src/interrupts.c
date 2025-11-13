@@ -72,7 +72,6 @@ void universal_handler(Context *ctx) {
     assert(sizeof(Context) == 68);
     if (ctx->vector >= IRQ0_VECTOR && ctx->vector < IRQ0_VECTOR + IRQs) {
         custom_handler handler = custom_handlers[ctx->vector - IRQ0_VECTOR];
-        //printf("%x", handler);
         if (handler && handler != universal_handler) {
             handler(ctx);
             return;
@@ -83,23 +82,17 @@ void universal_handler(Context *ctx) {
                  "  EAX: 0x%x, ECX: 0x%x, EDX: 0x%x, EBX: 0x%x\n"
                  "  ESP: 0x%x, EBP: 0x%x, ESI: 0x%x, EDI: 0x%x\n"
                  "  DS : 0x%x, ES : 0x%x, FS : 0x%x, GS : 0x%x\n\n"
-                 "Error code: 0x%x\n\n"
+                 "Error code:\n"
+                 "  %s, value: 0x%x\n\n"
                  "EFLAGS:\n"
                  "  value: 0x%x",
                  ctx->vector, ctx->cs, ctx->eip,
                  ctx->eax, ctx->ecx, ctx->edx, ctx->ebx,
                  ctx->esp, ctx->ebp, ctx->esi, ctx->edi,
                  ctx->ds, ctx->es, ctx->fs, ctx->gs,
+                 has_error_code(ctx->vector) ? "common" : "fake",
                  ctx->error_code, ctx->eflags);
 }
-
-void synchronize() {
-    //for (int i = 0; i < 5; ++i) cpuid();
-    write_0x80();
-    write_0x80();
-}
-
-
 
 void pic8259_init(PIC8259Type type, bool auto_eoi) {
     u8 data_port, command_port;
@@ -111,41 +104,33 @@ void pic8259_init(PIC8259Type type, bool auto_eoi) {
         data_port = SLAVE_DATA;
     }
 
-    write_pic8259(data_port, 0b11111111);
-    synchronize();
-    write_pic8259(command_port, 0b00010001);
-    synchronize();
-    write_pic8259(data_port, type == MASTER ? IRQ0_VECTOR : IRQ8_VECTOR);
-    synchronize();
-    write_pic8259(data_port, type == MASTER ? 1 << SLAVE_IRQ : SLAVE_IRQ);
-    synchronize();
-    write_pic8259(data_port, auto_eoi ? 0b0011 : 0b0001);
-    synchronize();
-    write_pic8259(data_port, 0b11111111);
+    write_u8(data_port, 0b11111111);
+    write_u8(command_port, 0b00010001);
+    write_u8(data_port, type == MASTER ? IRQ0_VECTOR : IRQ8_VECTOR);
+    write_u8(data_port, type == MASTER ? 1 << SLAVE_IRQ : SLAVE_IRQ);
+    write_u8(data_port, auto_eoi ? 0b0011 : 0b0001);
+    write_u8(data_port, 0b11111111);
 }
 
 void pic8259_enable_device(InterruptRequest irq, custom_handler handler) {
-    printf("enabling device..\n");
-    if (irq < 8) {
-        u8 current_mask = read_pic8259(MASTER_DATA);
-        printf("current mask: %b\n", current_mask);
-        u8 new_mask = ~(1 << irq) & current_mask;
-        printf("new mask: %b\n", new_mask);
-        write_pic8259(MASTER_DATA, new_mask);
-        synchronize();
-    } else {
-        u8 current_mask = read_pic8259(MASTER_DATA);
-        u8 new_mask = ~(1 << (irq-8)) & current_mask;
-        write_pic8259(MASTER_DATA, new_mask);
-        synchronize();
-    }
-    printf("irq: %d, handler: %d\n", irq, handler);
+    irq = irq < 8 ? irq : irq - 8;
+    u8 current_mask = read_u8(MASTER_DATA);
+    u8 new_mask = ~(1 << irq) & current_mask;
+    write_u8(MASTER_DATA, new_mask);
     custom_handlers[irq] = handler;
 }
 
+void pic8259_disable_device(InterruptRequest irq) {
+    irq = irq < 8 ? irq : irq - 8;
+    u8 current_mask = read_u8(MASTER_DATA);
+    u8 new_mask = 1 << irq | current_mask;
+    write_u8(MASTER_DATA, new_mask);
+    custom_handlers[irq] = 0;
+}
+
 void pic8259_send_EOI(InterruptRequest irq) {
-    write_pic8259(MASTER_COMMAND, 0x20);
+    write_u8(MASTER_COMMAND, 0x20);
     if (irq >= 8) {
-       write_pic8259(SLAVE_COMMAND, 0x20);
+       write_u8(SLAVE_COMMAND, 0x20);
     }
 }

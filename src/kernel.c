@@ -1,40 +1,32 @@
 #include "asm_utils.h"
 #include "types.h"
 #include "vga.h"
-#include "alloc.h"
-#include "assert.h"
 #include "interrupts.h"
 #include "printf.h"
+#include "experiments.h"
 
-u32 a = 42;
-static void timer_handler(Context* ctx) {
-	//a = 0;
-	printf("%d ", a++);
-
-//	if (a < 52) {
-//		pic8259_send_EOI(TIMER);
-//		sti();
-//	}
-//	endless_loop();
+void delay() {
+	for (int i = 0; i < 10; ++i) {
+		for (int j = 0; j < 50000; ++j) {
+			write_u8(0x80, 0x80);
+		}
+		printf("%d ", i);
+	}
+	printf("\n");
 }
 
-static void keyboard_handler(Context* ctx) {
-	printf("%x ", read_pic8259(0x60));
-	//pic8259_send_EOI(KEYBOARD);
-	//endless_loop();
+u32 global = 42;
+u32 N = 52;
+
+static void timer_handler(Context *ctx) {
+	TIMER_HANDLER(EXP_NUM);
 }
 
+static void keyboard_handler(Context *ctx) {
+	KEYBOARD_HANDLER(EXP_NUM);
+}
 
 void kernel_entry() {
 	vga_clear_screen();
-	init_interrupts(INTERRUPT);
-	printf("Hllo World\n");
-	bool auto_eoi = true;
-	pic8259_init(MASTER, auto_eoi);
-	pic8259_init(SLAVE, auto_eoi);
-	pic8259_enable_device(TIMER, timer_handler);
-	pic8259_enable_device(KEYBOARD, keyboard_handler);
-	sti();
-	endless_loop();
-	//for (;;) printf("%d ", a++);
+	EXPERIMENT(EXP_NUM);
 }

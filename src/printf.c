@@ -44,20 +44,29 @@ void print_string(const char* str) {
     for (const char* c = str; *c; ++c) {
         putchar(*c);
     }
-} 
+}
+
+float log2(u32 value) {
+    float res = 0;
+    while (value > 1) {
+        value /= 2;
+        res++;
+    }
+    return res;
+}
 
 void print_unsigned(u32 number, u32 radix) {
-    char string[33];
-    u32 i = 32; 
-    string[i] = '\0';
+    u32 len = 32 / log2(radix);
+    char string[len + 1];
+    string[len] = '\0';
 
     do {
         assert(i);
         u32 digit = number % radix;
         number /= radix;
-        string[--i] = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
-    } while (number);
-    print_string(&string[i]);
+        string[--len] = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
+    } while (radix == 10 ? number : len);
+    print_string(&string[len]);
 }
 
 void print_signed(i32 number) {
@@ -126,11 +135,11 @@ void vprintf(const char* fmt, va_list args) {
             }    
         }
     } 
-    va_end(args);
 }
 
 void printf(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     vprintf(fmt, args);
+    va_end(args);
 }

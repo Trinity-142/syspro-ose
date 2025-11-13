@@ -39,18 +39,25 @@ sti:
     sti
     ret
 
-[GLOBAL write_pic8259]
-write_pic8259:
+[GLOBAL write_u8]
+write_u8:
     mov edx, [esp+4]
     mov eax, [esp+8]
     out dx, al
+    call synchronize
     ret
 
-[GLOBAL read_pic8259]
-read_pic8259:
+[GLOBAL read_u8]
+read_u8:
     xor eax, eax
     mov edx, [esp+4]
     in al, dx
+    ret
+
+synchronize:
+    call cpuid
+    call cpuid
+    call cpuid
     ret
 
 [GLOBAL cpuid]
@@ -59,9 +66,4 @@ cpuid:
     xor eax, eax
     cpuid
     pop ebx
-    ret
-
-[GLOBAL write_0x80]
-write_0x80:
-    out 0x80, al
     ret
