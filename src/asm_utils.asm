@@ -39,6 +39,44 @@ sti:
     sti
     ret
 
+[EXTERN universal_handler]
+[GLOBAL collect_context]
+collect_context:
+    ; push segment registers
+    push ds
+    push es
+    push fs
+    push gs
+    ; push GPRs
+    pusha
+
+    ; clear df flag
+    cld
+    ; segment registers init
+    mov eax, DATA
+    mov ds, eax
+    mov es, eax
+    mov fs, eax
+    mov gs, eax
+
+    ; stack alignment
+    mov ebx, esp
+    and esp, 0xFFFFFFF0
+    sub esp, 12
+    push ebx
+    call universal_handler
+
+    ; resotre context
+    mov esp, ebx
+    popa
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    add esp, 8
+    iret
+DATA equ 0x10
+
 [GLOBAL write_u8]
 write_u8:
     mov edx, [esp+4]

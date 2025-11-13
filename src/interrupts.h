@@ -5,6 +5,7 @@
 
 #include "types.h"
 
+#define INTERRUPT_GATE 0b110
 #define TRAP_GATE 0b111
 #define TRAMPOLINE_SIZE 8
 #define IRQs 16
