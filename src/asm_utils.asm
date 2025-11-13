@@ -38,3 +38,30 @@ syscall:
 sti:
     sti
     ret
+
+[GLOBAL write_pic8259]
+write_pic8259:
+    mov edx, [esp+4]
+    mov eax, [esp+8]
+    out dx, al
+    ret
+
+[GLOBAL read_pic8259]
+read_pic8259:
+    xor eax, eax
+    mov edx, [esp+4]
+    in al, dx
+    ret
+
+[GLOBAL cpuid]
+cpuid:
+    push ebx
+    xor eax, eax
+    cpuid
+    pop ebx
+    ret
+
+[GLOBAL write_0x80]
+write_0x80:
+    out 0x80, al
+    ret

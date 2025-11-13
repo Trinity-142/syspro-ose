@@ -5,8 +5,8 @@
 #include "types.h"
 #include "mem.h"
 
-#define ARENA_START 0x7C00 + KERNEL_SIZE
-#define ARENA_END   0x80000
+#define ARENA_START 0x100000
+#define ARENA_END   0x400000
 #define DEFAULT_ALIGNMENT 1
 
 static u8 *current = (u8*) ARENA_START;

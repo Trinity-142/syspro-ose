@@ -125,12 +125,12 @@ void vprintf(const char* fmt, va_list args) {
                     break;
             }    
         }
-    } 
-    va_end(args);
+    }
 }
 
 void printf(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     vprintf(fmt, args);
+    va_end(args);
 }
