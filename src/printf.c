@@ -51,7 +51,7 @@ void print_unsigned(u32 number, u32 radix) {
     string[--i] = '\0';
 
     do {
-        assert(i);
+        assert(i > 0);
         u32 digit = number % radix;
         number /= radix;
         string[--i] = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
