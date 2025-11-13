@@ -28,7 +28,6 @@ void fixscreen() {
 
 void putchar(char c) {
     if (c == '\n') {
-        if (x == 0) return;
         y++;
         x = 0;
     }
@@ -46,27 +45,18 @@ void print_string(const char* str) {
     }
 }
 
-float log2(u32 value) {
-    float res = 0;
-    while (value > 1) {
-        value /= 2;
-        res++;
-    }
-    return res;
-}
-
 void print_unsigned(u32 number, u32 radix) {
-    u32 len = 32 / log2(radix);
-    char string[len + 1];
-    string[len] = '\0';
+    u32 i = 33;
+    char string[i];
+    string[--i] = '\0';
 
     do {
-        assert(i);
+        assert(i > 0);
         u32 digit = number % radix;
         number /= radix;
-        string[--len] = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
-    } while (radix == 10 ? number : len);
-    print_string(&string[len]);
+        string[--i] = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
+    } while (number);
+    print_string(&string[i]);
 }
 
 void print_signed(i32 number) {
