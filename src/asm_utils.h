@@ -2,6 +2,7 @@
 #define ASM_UTILS_H
 
 #include "interrupts.h"
+#include "pic8259.h"
 #include "types.h"
 
 void endless_loop();

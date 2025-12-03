@@ -6,9 +6,10 @@
 #include "types.h"
 #include "asm_utils.h"
 #include "assert.h"
+#include "experiments.h"
 #include "mem.h"
-
-static custom_handler custom_handlers[IRQs];
+#include "pic8259.h"
+#include "printf.h"
 
 bool has_error_code(u32 vector) {
     switch (vector) {
@@ -71,73 +72,47 @@ void setup_idt(Trampoline* trampolines, GateType interrupt_type) {
 }
 
 void init_interrupts(GateType interrupt_type) {
-    memzero(custom_handlers, sizeof(custom_handlers));
     setup_idt(setup_trampolines(), interrupt_type);
+}
+
+u32 global = 42;
+u32 N = 52;
+static void timer_handler(Context *ctx) {
+    TIMER_HANDLER(EXP_NUM);
+}
+
+static void keyboard_handler(Context *ctx) {
+    KEYBOARD_HANDLER(EXP_NUM);
 }
 
 void universal_handler(Context *ctx) {
     assert(sizeof(Context) == 68);
-    if (ctx->vector >= IRQ0_VECTOR && ctx->vector < IRQ0_VECTOR + IRQs) {
-        custom_handler handler = custom_handlers[ctx->vector - IRQ0_VECTOR];
-        if (handler && handler != universal_handler) {
-            handler(ctx);
+    switch (ctx->vector) {
+        case TIMER_HANDLER_VECTOR:
+            timer_handler(ctx);
             return;
-        }
+        case KEYBOARD_HANDLER_VECTOR:
+            keyboard_handler(ctx);
+            return;
+        default:
+            print_context(ctx);
     }
+}
+
+void print_context(Context* ctx) {
     kernel_panic("Kernel panic: unhandled interrupt #%d at 0x%x:0x%x\n\n"
-                 "Registers:\n"
-                 "  EAX: 0x%x, ECX: 0x%x, EDX: 0x%x, EBX: 0x%x\n"
-                 "  ESP: 0x%x, EBP: 0x%x, ESI: 0x%x, EDI: 0x%x\n"
-                 "  DS : 0x%x, ES : 0x%x, FS : 0x%x, GS : 0x%x\n\n"
-                 "Error code:\n"
-                 "  %s, value: 0x%x\n\n"
-                 "EFLAGS:\n"
-                 "  value: 0x%x",
-                 ctx->vector, ctx->cs, ctx->eip,
-                 ctx->eax, ctx->ecx, ctx->edx, ctx->ebx,
-                 ctx->esp, ctx->ebp, ctx->esi, ctx->edi,
-                 ctx->ds, ctx->es, ctx->fs, ctx->gs,
-                 has_error_code(ctx->vector) ? "common" : "fake",
-                 ctx->error_code, ctx->eflags);
-}
-
-void pic8259_init(PIC8259Type type, bool auto_eoi) {
-    u8 data_port, command_port;
-    if (type == MASTER) {
-        command_port = MASTER_COMMAND;
-        data_port = MASTER_DATA;
-    } else {
-        command_port = SLAVE_COMMAND;
-        data_port = SLAVE_DATA;
-    }
-
-    write_u8(data_port, 0b11111111);
-    write_u8(command_port, 0b00010001);
-    write_u8(data_port, type == MASTER ? IRQ0_VECTOR : IRQ8_VECTOR);
-    write_u8(data_port, type == MASTER ? 1 << SLAVE_IRQ : SLAVE_IRQ);
-    write_u8(data_port, auto_eoi ? 0b0011 : 0b0001);
-    write_u8(data_port, 0b11111111);
-}
-
-void pic8259_enable_device(InterruptRequest irq, custom_handler handler) {
-    irq = irq < 8 ? irq : irq - 8;
-    u8 current_mask = read_u8(MASTER_DATA);
-    u8 new_mask = ~(1 << irq) & current_mask;
-    write_u8(MASTER_DATA, new_mask);
-    custom_handlers[irq] = handler;
-}
-
-void pic8259_disable_device(InterruptRequest irq) {
-    irq = irq < 8 ? irq : irq - 8;
-    u8 current_mask = read_u8(MASTER_DATA);
-    u8 new_mask = 1 << irq | current_mask;
-    write_u8(MASTER_DATA, new_mask);
-    custom_handlers[irq] = 0;
-}
-
-void pic8259_send_EOI(InterruptRequest irq) {
-    write_u8(MASTER_COMMAND, 0x20);
-    if (irq >= 8) {
-       write_u8(SLAVE_COMMAND, 0x20);
-    }
+                    "Registers:\n"
+                    "  EAX: 0x%x, ECX: 0x%x, EDX: 0x%x, EBX: 0x%x\n"
+                    "  ESP: 0x%x, EBP: 0x%x, ESI: 0x%x, EDI: 0x%x\n"
+                    "  DS : 0x%x, ES : 0x%x, FS : 0x%x, GS : 0x%x\n\n"
+                    "Error code:\n"
+                    "  %s, value: 0x%x\n\n"
+                    "EFLAGS:\n"
+                    "  value: 0x%x",
+                    ctx->vector, ctx->cs, ctx->eip,
+                    ctx->eax, ctx->ecx, ctx->edx, ctx->ebx,
+                    ctx->esp, ctx->ebp, ctx->esi, ctx->edi,
+                    ctx->ds, ctx->es, ctx->fs, ctx->gs,
+                    has_error_code(ctx->vector) ? "common" : "fake",
+                    ctx->error_code, ctx->eflags);
 }

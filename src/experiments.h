@@ -1,6 +1,6 @@
 #ifndef EXPERIMENTS_H
 #define EXPERIMENTS_H
-
+#include "pic8259.h"
 #define EXPERIMENT(n) EXP(n)
 #define EXP(n) EXP_##n
 #define TIMER_HANDLER(n) TIMER(n)
@@ -11,44 +11,44 @@
 #define EXP_1                                           \
     init_interrupts(INTERRUPT);                         \
     bool auto_eoi = false;                              \
-    pic8259_init(MASTER, auto_eoi);                     \
-    pic8259_init(SLAVE, auto_eoi);                      \
+    pic8259_init_master(auto_eoi);                      \
+    pic8259_init_slave(auto_eoi);                       \
     sti();                                              \
     endless_loop();
 
 #define EXP_2                                           \
     init_interrupts(INTERRUPT);                         \
     bool auto_eoi = false;                              \
-    pic8259_init(MASTER, auto_eoi);                     \
-    pic8259_init(SLAVE, auto_eoi);                      \
-    pic8259_enable_device(TIMER, universal_handler);    \
+    pic8259_init_master(auto_eoi);                     \
+    pic8259_init_slave(auto_eoi);                      \
+    pic8259_turn(TIMER, true);   \
     sti();                                              \
     endless_loop();
 
 #define EXP_3                                           \
     init_interrupts(INTERRUPT);                         \
     bool auto_eoi = false;                              \
-    pic8259_init(MASTER, auto_eoi);                     \
-    pic8259_init(SLAVE, auto_eoi);                      \
-    pic8259_enable_device(KEYBOARD, universal_handler); \
+    pic8259_init_master(auto_eoi);                      \
+    pic8259_init_slave(auto_eoi);                       \
+    pic8259_turn(KEYBOARD, true);                       \
     sti();                                              \
     endless_loop();
 
 #define EXP_4                                           \
     init_interrupts(INTERRUPT);                         \
     bool auto_eoi = true;                               \
-    pic8259_init(MASTER, auto_eoi);                     \
-    pic8259_init(SLAVE, auto_eoi);                      \
-    pic8259_enable_device(TIMER, timer_handler);        \
+    pic8259_init_master(auto_eoi);                     \
+    pic8259_init_slave(auto_eoi);                      \
+    pic8259_turn(TIMER, true);       \
     sti();                                              \
     endless_loop();
 
 #define EXP_5                                           \
     init_interrupts(INTERRUPT);                         \
     bool auto_eoi = true;                               \
-    pic8259_init(MASTER, auto_eoi);                     \
-    pic8259_init(SLAVE, auto_eoi);                      \
-    pic8259_enable_device(TIMER, timer_handler);        \
+    pic8259_init_master(auto_eoi);                     \
+    pic8259_init_slave(auto_eoi);                      \
+    pic8259_turn(TIMER, true);       \
     sti();                                              \
     for (;;) printf("%d ", global++);
 
@@ -57,9 +57,9 @@
 #define EXP_7                                           \
     init_interrupts(INTERRUPT);                         \
     bool auto_eoi = false;                              \
-    pic8259_init(MASTER, auto_eoi);                     \
-    pic8259_init(SLAVE, auto_eoi);                      \
-    pic8259_enable_device(TIMER, timer_handler);        \
+    pic8259_init_master(auto_eoi);                     \
+    pic8259_init_slave(auto_eoi);                      \
+    pic8259_turn(TIMER, true);       \
     sti();                                              \
     endless_loop();
 
@@ -70,37 +70,37 @@
 #define EXP_11                                          \
     init_interrupts(TRAP);                              \
     bool auto_eoi = false;                              \
-    pic8259_init(MASTER, auto_eoi);                     \
-    pic8259_init(SLAVE, auto_eoi);                      \
-    pic8259_enable_device(TIMER, timer_handler);        \
+    pic8259_init_master(auto_eoi);                     \
+    pic8259_init_slave(auto_eoi);                      \
+    pic8259_turn(TIMER, true);       \
     sti();                                              \
     endless_loop();
 
 #define EXP_12                                          \
     init_interrupts(INTERRUPT);                         \
     bool auto_eoi = true;                               \
-    pic8259_init(MASTER, auto_eoi);                     \
-    pic8259_init(SLAVE, auto_eoi);                      \
-    pic8259_enable_device(TIMER, timer_handler);        \
+    pic8259_init_master(auto_eoi);                     \
+    pic8259_init_slave(auto_eoi);                      \
+    pic8259_turn(TIMER, true);       \
     sti();                                              \
     endless_loop();
 
 #define EXP_13                                          \
     init_interrupts(INTERRUPT);                         \
     bool auto_eoi = true;                               \
-    pic8259_init(MASTER, auto_eoi);                     \
-    pic8259_init(SLAVE, auto_eoi);                      \
-    pic8259_enable_device(KEYBOARD, keyboard_handler);  \
+    pic8259_init_master(auto_eoi);                     \
+    pic8259_init_slave(auto_eoi);                      \
+    pic8259_turn(KEYBOARD, true); \
     sti();                                              \
     endless_loop();
 
 #define EXP_14                                          \
     init_interrupts(INTERRUPT);                         \
     bool auto_eoi = true;                               \
-    pic8259_init(MASTER, auto_eoi);                     \
-    pic8259_init(SLAVE, auto_eoi);                      \
-    pic8259_enable_device(TIMER, timer_handler);        \
-    pic8259_enable_device(KEYBOARD, keyboard_handler);  \
+    pic8259_init_master(auto_eoi);                     \
+    pic8259_init_slave(auto_eoi);                      \
+    pic8259_turn(TIMER, true);       \
+    pic8259_turn(KEYBOARD, true); \
     sti();                                              \
     endless_loop();
 
@@ -113,10 +113,10 @@
 #define EXP_18                                          \
     init_interrupts(TRAP);                              \
     bool auto_eoi = false;                              \
-    pic8259_init(MASTER, auto_eoi);                     \
-    pic8259_init(SLAVE, auto_eoi);                      \
-    pic8259_enable_device(TIMER, timer_handler);        \
-    pic8259_enable_device(KEYBOARD, keyboard_handler);  \
+    pic8259_init_master(auto_eoi);                     \
+    pic8259_init_slave(auto_eoi);                      \
+    pic8259_turn(TIMER, true);       \
+    pic8259_turn(KEYBOARD, true); \
     sti();                                              \
     endless_loop();
 
@@ -125,10 +125,10 @@
 #define EXP_20                                          \
     init_interrupts(INTERRUPT);                         \
     bool auto_eoi = true;                               \
-    pic8259_init(MASTER, auto_eoi);                     \
-    pic8259_init(SLAVE, auto_eoi);                      \
-    pic8259_enable_device(TIMER, timer_handler);        \
-    pic8259_enable_device(KEYBOARD, keyboard_handler);  \
+    pic8259_init_master(auto_eoi);                     \
+    pic8259_init_slave(auto_eoi);                      \
+    pic8259_turn(TIMER, true);       \
+    pic8259_turn(KEYBOARD, true); \
     sti();                                              \
     endless_loop();
 
@@ -144,7 +144,8 @@
 #define KEYBOARD_HANDLER_2
 
 #define TIMER_HANDLER_3
-#define KEYBOARD_HANDLER_3
+#define KEYBOARD_HANDLER_3                              \
+    print_context(ctx);
 
 #define TIMER_HANDLER_4                                 \
     printf("%d ", global++);
@@ -245,7 +246,7 @@
     endless_loop();
 
 #define TIMER_HANDLER_20                                \
-    pic8259_disable_device(TIMER);                      \
+    pic8259_turn(TIMER, false);                     \
     delay();                                            \
     sti();                                              \
     delay();

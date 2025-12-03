@@ -1,7 +1,9 @@
+#include <stdbool.h>
+
 #include "asm_utils.h"
-#include "types.h"
 #include "vga.h"
 #include "interrupts.h"
+#include "pic8259.h"
 #include "printf.h"
 #include "experiments.h"
 
@@ -13,17 +15,6 @@ void delay() {
 		printf("%d ", i);
 	}
 	printf("\n");
-}
-
-u32 global = 42;
-u32 N = 52;
-
-static void timer_handler(Context *ctx) {
-	TIMER_HANDLER(EXP_NUM);
-}
-
-static void keyboard_handler(Context *ctx) {
-	KEYBOARD_HANDLER(EXP_NUM);
 }
 
 void kernel_entry() {
