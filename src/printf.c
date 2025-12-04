@@ -9,9 +9,9 @@
 static u32 x = 0;
 static u32 y = 0;
 
-void set_cursor(u32 X, u32 Y) {
-    x = X;
-    y = Y;
+void set_cursor(u32 new_x, u32 new_y) {
+    x = new_x;
+    y = new_y;
 }
 
 void fixscreen() {
@@ -28,7 +28,6 @@ void fixscreen() {
 
 void putchar(char c) {
     if (c == '\n') {
-        if (x == 0) return;
         y++;
         x = 0;
     }
@@ -47,9 +46,9 @@ void print_string(const char* str) {
 } 
 
 void print_unsigned(u32 number, u32 radix) {
-    char string[33];
-    u32 i = 32; 
-    string[i] = '\0';
+    u32 i = 33;
+    char string[i];
+    string[--i] = '\0';
 
     do {
         assert(i);
@@ -111,7 +110,7 @@ void vprintf(const char* fmt, va_list args) {
                     break;
             
                 default:
-                    kernel_panic("Kernel panic: uknown type specifier: %c\n", *c);
+                    kernel_panic("Kernel panic: unknown type specifier: %c\n", *c);
             }
             percent = false;
 
@@ -126,11 +125,11 @@ void vprintf(const char* fmt, va_list args) {
             }    
         }
     } 
-    va_end(args);
 }
 
 void printf(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     vprintf(fmt, args);
+    va_end(args);
 }

@@ -1,6 +1,6 @@
 # =============================================================================
 # Variables
-KERNEL_SIZE ?= 4096
+KERNEL_SIZE ?= 4096 
 DEBUG ?= 0
 # Build tools
 ifeq ($(DEBUG),1)
@@ -28,6 +28,11 @@ ASM_OBJECTS = $(patsubst src/%.asm, .tmp/%.o, $(ASM_SOURCES))
 
 .tmp/os.bin: .tmp/os.elf
 		objcopy -I elf32-i386 -O binary .tmp/os.elf .tmp/os.bin
+		@SIZE=$$(stat -c%s .tmp/os.bin); \
+		if [ $$SIZE -gt $(KERNEL_SIZE) ]; then \
+			echo "Error: Kernel size $$SIZE exceeds limit $(KERNEL_SIZE)"; \
+			exit 1; \
+	  	fi
 
 os.img: .tmp/os.bin
 		dd if=/dev/zero of=os.img bs=1024 count=1440

@@ -1,8 +1,6 @@
 #ifndef VGA_H
 #define VGA_H
 
-#include <stddef.h>
-
 #define VGA_BUFFER 0xB8000
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
@@ -16,7 +14,7 @@
 
 void vga_clear_screen();
 
-void vga_print_char(char c, size_t x, size_t y);
+void vga_print_char(char c, u32 x, u32 y);
 
 void vga_scroll_down();
 
