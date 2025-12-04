@@ -1,5 +1,4 @@
 #include <stddef.h>
-#include <stdint.h>
 
 #include "panic.h"
 #include "types.h"

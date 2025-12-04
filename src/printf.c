@@ -110,7 +110,7 @@ void vprintf(const char* fmt, va_list args) {
                     break;
             
                 default:
-                    kernel_panic("Kernel panic: uknown type specifier: %c\n", *c);
+                    kernel_panic("Kernel panic: unknown type specifier: %c\n", *c);
             }
             percent = false;
 

@@ -6,6 +6,7 @@
 void vkernel_panic(const char* fmt, va_list args) {
     cli(); 
     vprintf(fmt, args);
+    endless_loop();
 }
 
 void kernel_panic(const char* fmt, ...) {
