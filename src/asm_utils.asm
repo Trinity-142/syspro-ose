@@ -53,7 +53,7 @@ collect_context:
     ; clear df flag
     cld
     ; segment registers init
-    mov eax, DATA
+    mov eax, KERNEL_DATA
     mov ds, eax
     mov es, eax
     mov fs, eax
@@ -75,7 +75,7 @@ collect_context:
     pop ds
     add esp, 8
     iret
-DATA equ 0x10
+KERNEL_DATA equ 0x10
 
 [GLOBAL write_u8]
 write_u8:
@@ -105,3 +105,31 @@ cpuid:
     cpuid
     pop ebx
     ret
+
+
+[GLOBAL enter_userspace]
+enter_userspace:
+    mov eax, [esp + 4]      ; user process entry
+    mov ecx, [esp + 8]      ; user stack
+
+    push APP_DATA | 3       ; SS - user data segment selector with CPL = 3
+    push ecx                ; ESP - user stack
+    pushfd                  ; push EFLAGS
+    pop ebx
+    and ebx, 0xFFFFCFFF     ; IOPL = 0
+    or ebx, 0x00000200      ; IF = 1
+    push ebx
+    push APP_CODE | 3       ; CS - user code segment selector with CPL = 3
+    push eax                ; EIP - user function
+
+    ; set segment registers
+    mov eax, APP_DATA | 3
+    mov ds, eax
+    mov es, eax
+    mov fs, eax
+    mov gs, eax
+
+    iret
+APP_CODE equ 0x18
+APP_DATA equ 0x20
+

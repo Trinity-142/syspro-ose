@@ -84,19 +84,29 @@ or eax, 0x1
 mov cr0, eax
 
 ; segment registers init
-jmp CODE:next
+jmp KERNEL_CODE:next
 [BITS 32]
 next:
-    mov eax, DATA       
+    mov eax, KERNEL_DATA
     mov ds, eax 
     mov ss, eax 
     mov es, eax
     mov fs, eax 
     mov gs, eax
 
+; load task register
+mov eax, tss
+mov [gdt_tss + 2], ax   ; tss base[15:00]
+shr eax, 16
+mov [gdt_tss + 4], al   ; tss base[23:16]
+shr eax, 8
+mov [gdt_tss + 7], al   ; tss base
+mov ax, TSS
+ltr ax
+
 ; jmp to C
 [EXTERN kernel_entry]
-jmp CODE:kernel_entry
+jmp KERNEL_CODE:kernel_entry
 
 ; pseudo gdt descriptor
 gdt_descriptor:
@@ -110,8 +120,8 @@ gdt_start:
     ; null descriptor
     .null: dq 0x0
 
-    ; code segment descriptor
-    .gdt_code:          
+    ; kernel code segment descriptor
+    .gdt_kernel_code:
         dw 0xFFFF       ; limit[15:00]
         dw 0x0          ; base[15:00]
         db 0x0          ; base[23:16]
@@ -120,8 +130,8 @@ gdt_start:
         db 0b1100_1111  ; granularity flag, D, L flag, available flag, limit[19:16]
         db 0x0          ; base[31:24]
 
-    ; data segment descriptor
-    .gdt_data:
+    ; kernel data segment descriptor
+    .gdt_kernel_data:
         dw 0xFFFF       ; limit[15:00]
         dw 0x0          ; base[15:00]
         db 0x0          ; base[23:16]
@@ -129,11 +139,51 @@ gdt_start:
                         ; data flags: executable, E, write-enable, accessed
         db 0b1100_1111  ; granularity flag, B, L flag, available flag, limit[19:16]
         db 0x0          ; base[31:24]
+
+     ; kernel code segment descriptor
+    .gdt_app_code:
+        dw 0xFFFF       ; limit[15:00]
+        dw 0x0          ; base[15:00]
+        db 0x0          ; base[23:16]
+        db 0b1111_1010  ; segment-present flag, dpl, descriptor type flag
+                        ; code flags: executable, conforming, read-enable, accessed
+        db 0b1100_1111  ; granularity flag, D, L flag, available flag, limit[19:16]
+        db 0x0          ; base[31:24]
+
+    ; kernel data segment descriptor
+    .gdt_app_data:
+        dw 0xFFFF       ; limit[15:00]
+        dw 0x0          ; base[15:00]
+        db 0x0          ; base[23:16]
+        db 0b1111_0010  ; segment-present flag, dpl, descriptor type flag
+                        ; data flags: executable, E, write-enable, accessed
+        db 0b1100_1111  ; granularity flag, B, L flag, available flag, limit[19:16]
+        db 0x0          ; base[31:24]
+
+    ; tss descriptor
+    gdt_tss:
+        dw TSS_LIMIT    ; limit[15:00]
+        dw 0            ; base[15:00]
+        db 0            ; base[23:16]
+        db 0b1000_1001  ; segment-present flag, dpl, descriptor type flag
+        db 0b0000_0000  ; granularity flag, D, L flag, available flag, limit[19:16]
+        db 0            ; base[31:24]
 gdt_end:
 
+tss:
+    dd 0x0
+    dd 0x7C00           ; ESP0 - privileged stack
+    dd KERNEL_DATA      ; SS0
+    times 24 dd 0x0
+
+TSS_LIMIT equ 107     ; 108 - 1
+
 ; segment selectors init
-CODE equ 0x8
-DATA equ 0x10
+KERNEL_CODE equ 0x8
+KERNEL_DATA equ 0x10
+APP_CODE equ 0x18
+APP_DATA equ 0x20
+TSS equ 0x28
 
 times 510-($-$$) db 0
 dw 0xAA55
