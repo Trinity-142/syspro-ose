@@ -1,10 +1,12 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
+#include "asm_utils.h"
 #include "assert.h"
 #include "panic.h"
 #include "types.h"
 #include "vga.h"
+#include "printf.h"
 
 static u32 x = 0;
 static u32 y = 0;
@@ -60,6 +62,10 @@ void print_unsigned(u32 number, u32 radix) {
 }
 
 void print_signed(i32 number) {
+    if (number == 0) {
+        printf("ZERO!");
+        endless_loop();
+    }
     if (number < 0) {
         putchar('-');
         number *= -1;
@@ -87,11 +93,13 @@ void vprintf(const char* fmt, va_list args) {
                 }
                 case 'x': {
                     u32 number = va_arg(args, u32);
+                    printf("0x");
                     print_unsigned(number, 16);
                     break;
                 }
                 case 'b': {
                     u32 number = va_arg(args, u32);
+                    printf("0b");
                     print_unsigned(number, 2);
                     break;
                 }

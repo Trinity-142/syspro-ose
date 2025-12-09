@@ -1,9 +1,6 @@
 [BITS 16]
 
-%define NUM_OF_SECTORS ((KERNEL_SIZE) / 512 + 1) 
-%define MAX_SECTOR_NUM 18
-%define MAX_HEAD_NUM 1
-%define MAX_CYLINDER_NUM 79
+%include "src/consts.inc"
 
 cli
 
@@ -121,7 +118,8 @@ gdt_start:
     .null: dq 0x0
 
     ; kernel code segment descriptor
-    .gdt_kernel_code:
+    [GLOBAL gdt_kernel_code]
+    gdt_kernel_code:
         dw 0xFFFF       ; limit[15:00]
         dw 0x0          ; base[15:00]
         db 0x0          ; base[23:16]
@@ -175,15 +173,6 @@ tss:
     dd 0x7C00           ; ESP0 - privileged stack
     dd KERNEL_DATA      ; SS0
     times 24 dd 0x0
-
-TSS_LIMIT equ 107     ; 108 - 1
-
-; segment selectors init
-KERNEL_CODE equ 0x8
-KERNEL_DATA equ 0x10
-APP_CODE equ 0x18
-APP_DATA equ 0x20
-TSS equ 0x28
 
 times 510-($-$$) db 0
 dw 0xAA55

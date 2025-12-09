@@ -1,3 +1,5 @@
+%include "src/consts.inc"
+
 [GLOBAL cli]
 cli:
     cli
@@ -29,9 +31,9 @@ division_by_zero:
     div eax
     ret
 
-[GLOBAL syscall]
-syscall:
-    int 142
+[GLOBAL write]
+write:
+    int SYSCALL_HANDLER_VECTOR
     ret
 
 [GLOBAL sti]
@@ -75,7 +77,6 @@ collect_context:
     pop ds
     add esp, 8
     iret
-KERNEL_DATA equ 0x10
 
 [GLOBAL write_u8]
 write_u8:
@@ -130,6 +131,3 @@ enter_userspace:
     mov gs, eax
 
     iret
-APP_CODE equ 0x18
-APP_DATA equ 0x20
-

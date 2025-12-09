@@ -5,6 +5,7 @@
 #include "types.h"
 
 #define TRAMPOLINE_SIZE 8
+#define SYSCALL_HANDLER_VECTOR 0x80
 
 extern u32 global;
 extern u32 N;

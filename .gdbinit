@@ -1,8 +1,7 @@
+file .tmp/os.elf
 target remote localhost:1234
 set disassembly-flavor intel
-b *0x7c00
-c
+set arch i386
+br kernel_entry 
 display/i $pc
-x/20i $pc
-
-# set arch i80386
+c
