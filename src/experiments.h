@@ -41,13 +41,16 @@
 #define EXP_5 EXP_1
 #define TIMER_HANDLER_5
 #define USERSPACE_PROCESS_5                             \
-    cli();                                              \
-//    in();                                               \
-//    lgdt();                                             \
-//    lidt();                                             \
-//    ltr();                                              \
-//    mov cr0();                                          \
+    read_u8(MASTER_COMMAND);    \
     endless_loop();
+/*
+    cli();                                              \
+    ltr();  \
+    read_u8(MASTER_DATA);
+    lgdt();
+    lidt((u64*) 100);   \
+    cr();
+*/
 
 #define EXP_6                                           \
     vga_clear_screen();                                 \

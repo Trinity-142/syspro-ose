@@ -107,6 +107,22 @@ cpuid:
     pop ebx
     ret
 
+[EXTERN gdt_descriptor]
+[GLOBAL lgdt]
+lgdt:
+    lgdt [gdt_descriptor]
+    ret
+
+[GLOBAL ltr]
+ltr:
+    mov ax, TSS
+    ltr ax
+    ret
+
+[GLOBAL cr]
+cr:
+    mov cr0, eax
+    ret
 
 [GLOBAL enter_userspace]
 enter_userspace:

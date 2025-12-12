@@ -17,5 +17,8 @@ void write_u8(Port port, u8 value);
 u8 read_u8(Port port);
 void cpuid();
 void enter_userspace(void (*user_entry)(), void* user_stack);
+void lgdt();
+void ltr();
+void cr0();
 
 #endif

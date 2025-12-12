@@ -106,6 +106,7 @@ ltr ax
 jmp KERNEL_CODE:kernel_entry
 
 ; pseudo gdt descriptor
+[GLOBAL gdt_descriptor]
 gdt_descriptor:
     dw gdt_end - gdt_start - 1 ; gdt limit
     dd gdt_start               ; gdt base address
