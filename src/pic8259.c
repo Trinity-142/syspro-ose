@@ -6,11 +6,11 @@ void pic8259_init_master(bool auto_eoi) {
     const u8 command_port = MASTER_COMMAND;
     const u8 data_port = MASTER_DATA;
 
-    write_u8(data_port, 0b11111111);
-    write_u8(command_port, 0b00010001);
-    write_u8(data_port, IRQ0_VECTOR);
-    write_u8(data_port, 1 << SLAVE_IRQ);
-    write_u8(data_port, auto_eoi ? 0b0011 : 0b0001);
+    write_u8(data_port, 0b11111111);            // irq mask
+    write_u8(command_port, 0b00010001);         // ICW1 (command): setup start | edge mode | 0 | cascade (icw3) | flags (icw4)
+    write_u8(data_port, IRQ0_VECTOR);           // ICW2 (data): irq to vector mapping
+    write_u8(data_port, 1 << SLAVE_IRQ);        // ICW3 (data): slave mask
+    write_u8(data_port, auto_eoi ? 0b0011 : 0b0001); // ICW4 (data)
     write_u8(data_port, 0b11111111);
 }
 
@@ -21,7 +21,7 @@ void pic8259_init_slave(bool auto_eoi) {
     write_u8(data_port, 0b11111111);
     write_u8(command_port, 0b00010001);
     write_u8(data_port, IRQ8_VECTOR);
-    write_u8(data_port, SLAVE_IRQ);
+    write_u8(data_port, SLAVE_IRQ);             // IR number
     write_u8(data_port, auto_eoi ? 0b0011 : 0b0001);
     write_u8(data_port, 0b11111111);
 }
