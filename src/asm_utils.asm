@@ -124,6 +124,11 @@ cr:
     mov cr0, eax
     ret
 
+[GLOBAL get_esp]
+get_esp:
+    mov eax, esp
+    ret
+
 [GLOBAL enter_userspace]
 enter_userspace:
     mov eax, [esp + 4]      ; user process entry

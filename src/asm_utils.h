@@ -20,5 +20,6 @@ void enter_userspace(void (*user_entry)(), void* user_stack);
 void lgdt();
 void ltr();
 void cr0();
+u32 get_esp();
 
 #endif
