@@ -43,7 +43,7 @@ void print_string(const char* str) {
     for (const char* c = str; *c; ++c) {
         putchar(*c);
     }
-} 
+}
 
 void print_unsigned(u32 number, u32 radix) {
     u32 i = 33;

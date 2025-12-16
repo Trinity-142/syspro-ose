@@ -76,3 +76,32 @@ collect_context:
     add esp, 8
     iret
 DATA equ 0x10
+
+[GLOBAL write_u8]
+write_u8:
+    mov edx, [esp+4]
+    mov eax, [esp+8]
+    out dx, al
+    call synchronize
+    ret
+
+[GLOBAL read_u8]
+read_u8:
+    xor eax, eax
+    mov edx, [esp+4]
+    in al, dx
+    ret
+
+synchronize:
+    call cpuid
+    call cpuid
+    call cpuid
+    ret
+
+[GLOBAL cpuid]
+cpuid:
+    push ebx
+    xor eax, eax
+    cpuid
+    pop ebx
+    ret

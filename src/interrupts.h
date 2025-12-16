@@ -1,13 +1,20 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 #include <stdalign.h>
-#include <stdbool.h>
 
 #include "types.h"
 
 #define INTERRUPT_GATE 0b110
 #define TRAP_GATE 0b111
 #define TRAMPOLINE_SIZE 8
+
+extern u32 global;
+extern u32 N;
+
+typedef enum {
+    INTERRUPT = 0b110,
+    TRAP = 0b111
+} GateType;
 
 typedef struct {
     u8 code[TRAMPOLINE_SIZE];
@@ -46,7 +53,8 @@ typedef struct {
     u16 offset_16_31: 16;
 } InterruptDesc;
 
-void universal_handler(const Context* ctx);
-void init_interrupts();
+void universal_handler(Context* ctx);
+void init_interrupts(GateType interrupt_type);
+void print_context(Context* ctx);
 
 #endif
