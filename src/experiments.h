@@ -41,10 +41,10 @@
 #define EXP_5 EXP_1
 #define TIMER_HANDLER_5
 #define USERSPACE_PROCESS_5                             \
-    cli();                                              \
+    read_u8(MASTER_COMMAND);                            \
     endless_loop();
 /*
-    read_u8(MASTER_COMMAND);                            \
+    cli();                                              \
     ltr();                                              \
     lgdt();                                             \
     lidt((u64*) 100);                                   \

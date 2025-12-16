@@ -173,7 +173,7 @@ tss:
     dd 0x0
     dd 0x7C00           ; ESP0 - privileged stack
     dd KERNEL_DATA      ; SS0
-    times 24 dd 0x0
+    times 24 dd 0xFFFFFFFF
 
 times 510-($-$$) db 0
 dw 0xAA55
