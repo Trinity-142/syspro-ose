@@ -7,9 +7,7 @@
 #include "asm_utils.h"
 #include "assert.h"
 #include "experiments.h"
-#include "mem.h"
 #include "pic8259.h"
-#include "printf.h"
 
 bool has_error_code(u32 vector) {
     switch (vector) {
