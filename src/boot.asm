@@ -139,7 +139,7 @@ gdt_start:
         db 0b1100_1111  ; granularity flag, B, L flag, available flag, limit[19:16]
         db 0x0          ; base[31:24]
 
-     ; kernel code segment descriptor
+     ; app code segment descriptor
     .gdt_app_code:
         dw 0xFFFF       ; limit[15:00]
         dw 0x0          ; base[15:00]
@@ -149,7 +149,7 @@ gdt_start:
         db 0b1100_1111  ; granularity flag, D, L flag, available flag, limit[19:16]
         db 0x0          ; base[31:24]
 
-    ; kernel data segment descriptor
+    ; app data segment descriptor
     .gdt_app_data:
         dw 0xFFFF       ; limit[15:00]
         dw 0x0          ; base[15:00]

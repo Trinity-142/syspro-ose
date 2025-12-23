@@ -134,18 +134,18 @@ enter_userspace:
     mov eax, [esp + 4]      ; user process entry
     mov ecx, [esp + 8]      ; user stack
 
-    push APP_DATA | 3       ; SS - user data segment selector with CPL = 3
+    push APP_DATA | USER_PL ; SS - user data segment selector with CPL = 3
     push ecx                ; ESP - user stack
     pushfd                  ; push EFLAGS
     pop ebx
     and ebx, 0xFFFFCFFF     ; IOPL = 0
     or ebx, 0x00000200      ; IF = 1
     push ebx
-    push APP_CODE | 3       ; CS - user code segment selector with CPL = 3
+    push APP_CODE | USER_PL ; CS - user code segment selector with CPL = 3
     push eax                ; EIP - user function
 
     ; set segment registers
-    mov eax, APP_DATA | 3
+    mov eax, APP_DATA | USER_PL
     mov ds, eax
     mov es, eax
     mov fs, eax
