@@ -2,12 +2,15 @@
 
 #include "interrupts.h"
 #include "alloc.h"
+#include "allocator.h"
 #include "panic.h"
 #include "types.h"
 #include "asm_utils.h"
 #include "assert.h"
 #include "experiments.h"
 #include "pic8259.h"
+#include "printf.h"
+#include "userspace.h"
 
 bool has_error_code(u32 vector) {
     switch (vector) {
@@ -60,7 +63,7 @@ void setup_idt(Trampoline* trampolines, GateType interrupt_type) {
         desc.type = interrupt_type;
         desc.d = 1;
         desc.fixed2 = 0;
-        desc.dpl = (vector == SYSCALL_HANDLER_VECTOR ? 3 : 0);
+        desc.dpl = (vector == WRITE_VECTOR || vector == EXIT_VECTOR ? 3 : 0);
         desc.p = 1;
         desc.offset_16_31 = handler_addr >> 16 & 0xFFFF;
         idt[vector] = desc;
@@ -86,34 +89,65 @@ static void syscall_handler(Context *ctx) {
     printf("%d ", ctx->eax);
 }
 
+u32 param;
+static void exit_impl(Context *ctx) {
+    cleanup_user_stack();
+    printf("%d\n", ctx->eax);
+    param++;
+    start_usercode();
+}
+
 void universal_handler(Context *ctx) {
     assert(sizeof(Context) == 68);
     switch (ctx->vector) {
-        case TIMER_HANDLER_VECTOR:
+        case TIMER_VECTOR:
             timer_handler(ctx);
             return;
-        case KEYBOARD_HANDLER_VECTOR:
+        case KEYBOARD_VECTOR:
             keyboard_handler(ctx);
             return;
-        case SYSCALL_HANDLER_VECTOR:
+        case WRITE_VECTOR:
             syscall_handler(ctx);
             return;
+        case EXIT_VECTOR:
+            exit_impl(ctx);
+            return;
+        case PAGE_FAULT_VECTOR:
+            u32 cr2 = get_cr2();
+            bool us = ctx->error_code & (1 << 2);
+            //printf("CR2: %x\n", cr2);
+            if (us == 0) kernel_panic("Kernel panic: Page Fault in kernel space!\n");
+            else {
+                if (cr2 < 0x7000) printf("NullPointerException ");
+                else if (cr2 >= 0x80000 && cr2 < 0x400000) {
+                    printf("StackOverflowException ");
+                    endless_loop();
+                }
+                else if (cr2 >= 0x400000 && cr2 < USER_STACK_POINTER) {
+                    expand_user_stack(cr2);
+                    return;
+                }
+                else printf("UB ");
+                exit_impl(ctx);
+            }
         default:
             print_context(ctx);
     }
 }
 
 void print_context(Context* ctx) {
-    kernel_panic("Kernel panic: unhandled interrupt #%d at 0x%x:0x%x\n\n"
+    kernel_panic("Kernel panic: unhandled interrupt #%d at %x:%x\n"
+                    "CR2: %x\n\n"
                     "Registers:\n"
-                    "  EAX: 0x%x, ECX: 0x%x, EDX: 0x%x, EBX: 0x%x\n"
-                    "  ESP: 0x%x, EBP: 0x%x, ESI: 0x%x, EDI: 0x%x\n"
-                    "  DS : 0x%x, ES : 0x%x, FS : 0x%x, GS : 0x%x\n\n"
+                    "  EAX: %x, ECX: %x, EDX: %x, EBX: %x\n"
+                    "  ESP: %x, EBP: %x, ESI: %x, EDI: %x\n"
+                    "  DS : %x, ES : %x, FS : %x, GS : %x\n\n"
                     "Error code:\n"
-                    "  %s, value: 0x%x\n\n"
+                    "  %s, value: %x\n\n"
                     "EFLAGS:\n"
-                    "  value: 0x%x",
+                    "  value: %x",
                     ctx->vector, ctx->cs, ctx->eip,
+                    get_cr2(),
                     ctx->eax, ctx->ecx, ctx->edx, ctx->ebx,
                     ctx->esp, ctx->ebp, ctx->esi, ctx->edi,
                     ctx->ds, ctx->es, ctx->fs, ctx->gs,

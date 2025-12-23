@@ -4,6 +4,7 @@
 #include "interrupts.h"
 #include "pic8259.h"
 #include "types.h"
+#include "paging.h"
 
 void endless_loop();
 void cli();
@@ -22,5 +23,11 @@ void lgdt();
 void ltr();
 void cr0();
 u32 get_esp();
+void turn_paging_on(PageDirectoryEntry* pd);
+void turn_paging_off();
+u32 get_cr2();
+void exit(u32 status);
+void endless_rec();
+void n_rec(u32 param);
 
 #endif

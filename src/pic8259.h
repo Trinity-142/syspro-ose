@@ -4,8 +4,8 @@
 #define IRQs 16
 #define IRQ0_VECTOR 0x20
 #define IRQ8_VECTOR 0x28
-#define TIMER_HANDLER_VECTOR IRQ0_VECTOR
-#define KEYBOARD_HANDLER_VECTOR 0x21
+#define TIMER_VECTOR IRQ0_VECTOR
+#define KEYBOARD_VECTOR 0x21
 #define SLAVE_IRQ 2
 
 typedef enum {
