@@ -54,7 +54,6 @@ collect_context:
 
     ; clear df flag
     cld
-set_segment_registers:
     ; segment registers init
     mov eax, KERNEL_DATA
     mov ds, eax
