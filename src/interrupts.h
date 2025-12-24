@@ -37,6 +37,8 @@ typedef struct {
     u32 eip;
     u32 cs;
     u32 eflags;
+    u32 esp_privileged;
+    u32 ss_privileged;
 } Context;
 
 typedef struct {

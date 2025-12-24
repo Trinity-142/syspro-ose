@@ -54,6 +54,7 @@ collect_context:
 
     ; clear df flag
     cld
+set_segment_registers:
     ; segment registers init
     mov eax, KERNEL_DATA
     mov ds, eax
@@ -70,6 +71,7 @@ collect_context:
 
     ; resotre context
     mov esp, ebx
+restore_context:
     popa
     pop gs
     pop fs
@@ -129,26 +131,13 @@ get_esp:
     mov eax, esp
     ret
 
-[GLOBAL enter_userspace]
-enter_userspace:
-    mov eax, [esp + 4]      ; user process entry
-    mov ecx, [esp + 8]      ; user stack
+[GLOBAL restore_user_context]
+restore_user_context:
+    mov esp, [esp + 4]
+    jmp restore_context
 
-    push APP_DATA | USER_PL ; SS - user data segment selector with CPL = 3
-    push ecx                ; ESP - user stack
-    pushfd                  ; push EFLAGS
-    pop ebx
-    and ebx, 0xFFFFCFFF     ; IOPL = 0
-    or ebx, 0x00000200      ; IF = 1
-    push ebx
-    push APP_CODE | USER_PL ; CS - user code segment selector with CPL = 3
-    push eax                ; EIP - user function
-
-    ; set segment registers
-    mov eax, APP_DATA | USER_PL
-    mov ds, eax
-    mov es, eax
-    mov fs, eax
-    mov gs, eax
-
-    iret
+[GLOBAL get_eflags]
+get_eflags:
+    pushfd
+    pop eax
+    ret

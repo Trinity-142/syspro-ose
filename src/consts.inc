@@ -6,9 +6,6 @@
 %define KERNEL_CODE 0x8
 %define KERNEL_DATA 0x10
 %define TSS 0x28
-%define APP_CODE 0x18
-%define APP_DATA 0x20
-%define USER_PL 3
 
 %define TSS_LIMIT 107
 

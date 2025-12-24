@@ -92,12 +92,6 @@ next:
     mov gs, eax
 
 ; load task register
-mov eax, tss
-mov [gdt_tss + 2], ax   ; tss base[15:00]
-shr eax, 16
-mov [gdt_tss + 4], al   ; tss base[23:16]
-shr eax, 8
-mov [gdt_tss + 7], al   ; tss base
 mov ax, TSS
 ltr ax
 
@@ -162,7 +156,7 @@ gdt_start:
     ; tss descriptor
     gdt_tss:
         dw TSS_LIMIT    ; limit[15:00]
-        dw 0            ; base[15:00]
+        dw tss          ; base[15:00]
         db 0            ; base[23:16]
         db 0b1000_1001  ; segment-present flag, dpl, descriptor type flag
         db 0b0000_0000  ; granularity flag, D, L flag, available flag, limit[19:16]
