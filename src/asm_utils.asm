@@ -1,3 +1,5 @@
+%include "src/consts.inc"
+
 [GLOBAL cli]
 cli:
     cli
@@ -29,9 +31,9 @@ division_by_zero:
     div eax
     ret
 
-[GLOBAL syscall]
-syscall:
-    int 142
+[GLOBAL write]
+write:
+    int SYSCALL_HANDLER_VECTOR
     ret
 
 [GLOBAL sti]
@@ -53,7 +55,7 @@ collect_context:
     ; clear df flag
     cld
     ; segment registers init
-    mov eax, DATA
+    mov eax, KERNEL_DATA
     mov ds, eax
     mov es, eax
     mov fs, eax
@@ -68,6 +70,7 @@ collect_context:
 
     ; resotre context
     mov esp, ebx
+restore_context:
     popa
     pop gs
     pop fs
@@ -75,7 +78,6 @@ collect_context:
     pop ds
     add esp, 8
     iret
-DATA equ 0x10
 
 [GLOBAL write_u8]
 write_u8:
@@ -104,4 +106,37 @@ cpuid:
     xor eax, eax
     cpuid
     pop ebx
+    ret
+
+[EXTERN gdt_descriptor]
+[GLOBAL lgdt]
+lgdt:
+    lgdt [gdt_descriptor]
+    ret
+
+[GLOBAL ltr]
+ltr:
+    mov ax, TSS
+    ltr ax
+    ret
+
+[GLOBAL cr]
+cr:
+    mov cr0, eax
+    ret
+
+[GLOBAL get_esp]
+get_esp:
+    mov eax, esp
+    ret
+
+[GLOBAL restore_user_context]
+restore_user_context:
+    mov esp, [esp + 4]
+    jmp restore_context
+
+[GLOBAL get_eflags]
+get_eflags:
+    pushfd
+    pop eax
     ret

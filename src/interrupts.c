@@ -60,7 +60,7 @@ void setup_idt(Trampoline* trampolines, GateType interrupt_type) {
         desc.type = interrupt_type;
         desc.d = 1;
         desc.fixed2 = 0;
-        desc.dpl = 0;
+        desc.dpl = (vector == SYSCALL_HANDLER_VECTOR ? 3 : 0);
         desc.p = 1;
         desc.offset_16_31 = handler_addr >> 16 & 0xFFFF;
         idt[vector] = desc;
@@ -73,14 +73,17 @@ void init_interrupts(GateType interrupt_type) {
     setup_idt(setup_trampolines(), interrupt_type);
 }
 
-u32 global = 42;
+u32 global = 1;
+u32 timer = 1;
 u32 N = 52;
 static void timer_handler(Context *ctx) {
     TIMER_HANDLER(EXP_NUM);
 }
 
-static void keyboard_handler(Context *ctx) {
-    KEYBOARD_HANDLER(EXP_NUM);
+static void keyboard_handler(Context *ctx) {}
+
+static void syscall_handler(Context *ctx) {
+    printf("%d ", ctx->eax);
 }
 
 void universal_handler(Context *ctx) {
@@ -91,6 +94,9 @@ void universal_handler(Context *ctx) {
             return;
         case KEYBOARD_HANDLER_VECTOR:
             keyboard_handler(ctx);
+            return;
+        case SYSCALL_HANDLER_VECTOR:
+            syscall_handler(ctx);
             return;
         default:
             print_context(ctx);

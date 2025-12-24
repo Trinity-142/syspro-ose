@@ -1,5 +1,6 @@
 #ifndef ALLOC_H
 #define ALLOC_H
+#include "types.h"
 
 void* malloc_undead(u32 size, u32 alignment);
 

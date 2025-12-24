@@ -4,9 +4,8 @@
 
 #include "types.h"
 
-#define INTERRUPT_GATE 0b110
-#define TRAP_GATE 0b111
 #define TRAMPOLINE_SIZE 8
+#define SYSCALL_HANDLER_VECTOR 0x80
 
 extern u32 global;
 extern u32 N;
@@ -38,6 +37,8 @@ typedef struct {
     u32 eip;
     u32 cs;
     u32 eflags;
+    u32 esp_privileged;
+    u32 ss_privileged;
 } Context;
 
 typedef struct {

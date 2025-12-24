@@ -1,0 +1,12 @@
+%define NUM_OF_SECTORS ((KERNEL_SIZE) / 512 + 1)
+%define MAX_SECTOR_NUM 18
+%define MAX_HEAD_NUM 1
+%define MAX_CYLINDER_NUM 79
+
+%define KERNEL_CODE 0x8
+%define KERNEL_DATA 0x10
+%define TSS 0x28
+
+%define TSS_LIMIT 107
+
+%define SYSCALL_HANDLER_VECTOR 0x80

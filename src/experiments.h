@@ -1,236 +1,101 @@
 #ifndef EXPERIMENTS_H
 #define EXPERIMENTS_H
-#include "pic8259.h"
 #define EXPERIMENT(n) EXP(n)
 #define EXP(n) EXP_##n
 #define TIMER_HANDLER(n) TIMER(n)
 #define TIMER(n) TIMER_HANDLER_##n
-#define KEYBOARD_HANDLER(n) KEYBOARD(n)
-#define KEYBOARD(n) KEYBOARD_HANDLER_##n
+#define USERSPACE_PROCESS(n) USER(n)
+#define USER(n) USERSPACE_PROCESS_##n
 
 #define EXP_1                                           \
+    vga_clear_screen();                                 \
     init_interrupts(INTERRUPT);                         \
-    bool auto_eoi = false;                              \
+    bool auto_eoi = true;                               \
     pic8259_init_master(auto_eoi);                      \
     pic8259_init_slave(auto_eoi);                       \
-    sti();                                              \
-    endless_loop();
+    enter_userspace(user_main, malloc_undead(4096, 16) + 4096);
 #define TIMER_HANDLER_1
-#define KEYBOARD_HANDLER_1
-
-#define EXP_2                                           \
-    init_interrupts(INTERRUPT);                         \
-    bool auto_eoi = false;                              \
-    pic8259_init_master(auto_eoi);                      \
-    pic8259_init_slave(auto_eoi);                       \
-    pic8259_turn(TIMER, true);                          \
-    sti();                                              \
+#define USERSPACE_PROCESS_1                             \
     endless_loop();
-#define TIMER_HANDLER_2                                 \
-    print_context(ctx);
-#define KEYBOARD_HANDLER_2
 
-#define EXP_3                                           \
-    init_interrupts(INTERRUPT);                         \
-    bool auto_eoi = false;                              \
-    pic8259_init_master(auto_eoi);                      \
-    pic8259_init_slave(auto_eoi);                       \
-    pic8259_turn(KEYBOARD, true);                       \
-    sti();                                              \
+#define EXP_2 EXP_1
+#define TIMER_HANDLER_2
+#define USERSPACE_PROCESS_2                             \
+    printf("Hello from Userspace!");                    \
     endless_loop();
+
+#define EXP_3 EXP_1
 #define TIMER_HANDLER_3
-#define KEYBOARD_HANDLER_3                              \
-    print_context(ctx);
+#define USERSPACE_PROCESS_3                             \
+    for(;;) { \
+        printf("%d ", global);                          \
+        global++;                                       \
+    }
 
-#define EXP_4                                           \
-    init_interrupts(INTERRUPT);                         \
-    bool auto_eoi = true;                               \
-    pic8259_init_master(auto_eoi);                      \
-    pic8259_init_slave(auto_eoi);                       \
-    pic8259_turn(TIMER, true);                          \
-    sti();                                              \
+#define EXP_4 EXP_1
+#define TIMER_HANDLER_4
+#define USERSPACE_PROCESS_4                             \
+    printf("%x ", get_esp());                           \
     endless_loop();
-#define TIMER_HANDLER_4                                 \
-    printf("%d ", global++);
-#define KEYBOARD_HANDLER_4
 
-#define EXP_5                                           \
+#define EXP_5 EXP_1
+#define TIMER_HANDLER_5
+#define USERSPACE_PROCESS_5                             \
+    read_u8(MASTER_COMMAND);                            \
+    endless_loop();
+/*
+    cli();                                              \
+    ltr();                                              \
+    lgdt();                                             \
+    lidt((u64*) 100);                                   \
+    cr();                                               \
+*/
+
+#define EXP_6                                           \
+    vga_clear_screen();                                 \
     init_interrupts(INTERRUPT);                         \
     bool auto_eoi = true;                               \
     pic8259_init_master(auto_eoi);                      \
     pic8259_init_slave(auto_eoi);                       \
     pic8259_turn(TIMER, true);                          \
+    enter_userspace(user_main, malloc_undead(4096, 16) + 4096); \
     sti();                                              \
-    for (;;) printf("%d ", global++);
-#define TIMER_HANDLER_5                                 \
-    global = 0;
-#define KEYBOARD_HANDLER_5
-
-#define EXP_6 EXP_5
+	enter_userspace(user_main, malloc_undead(4096, 16) + 4096);
 #define TIMER_HANDLER_6                                 \
-    printf("%d ", global++);
-#define KEYBOARD_HANDLER_6
-
-#define EXP_7                                           \
-    init_interrupts(INTERRUPT);                         \
-    bool auto_eoi = false;                              \
-    pic8259_init_master(auto_eoi);                      \
-    pic8259_init_slave(auto_eoi);                       \
-    pic8259_turn(TIMER, true);                          \
-    sti();                                              \
+    printf("%x ", ctx->esp);                            \
     endless_loop();
+#define USERSPACE_PROCESS_6                             \
+    for(;;) {                                           \
+        printf("%d ", global);                          \
+        global++;                                       \
+    }
+
+#define EXP_7 EXP_6
 #define TIMER_HANDLER_7                                 \
-    printf("%d ", global++);
-#define KEYBOARD_HANDLER_7
+    global = 0;
+#define USERSPACE_PROCESS_7 USERSPACE_PROCESS_6
 
 #define EXP_8 EXP_7
 #define TIMER_HANDLER_8                                 \
-    printf("%d ", global++);                            \
-    pic8259_send_EOI(TIMER);
-#define KEYBOARD_HANDLER_8
+    global = 0;                                         \
+    printf("\n%d\n", timer++);
+#define USERSPACE_PROCESS_8 USERSPACE_PROCESS_7
 
-#define EXP_9 EXP_7
-#define TIMER_HANDLER_9                                 \
-    printf("%d ", global++);                            \
-    pic8259_send_EOI(TIMER);                            \
-    sti();                                              \
+#define EXP_9 EXP_6
+#define TIMER_HANDLER_9
+#define USERSPACE_PROCESS_9                             \
+    extern u8 gdt_kernel_code[];                        \
+	volatile u8* fifth_byte = &gdt_kernel_code[5];      \
+	*fifth_byte = *fifth_byte & 0x7F;                   \
     endless_loop();
-#define KEYBOARD_HANDLER_9
 
-#define EXP_10 EXP_7
+#define EXP_10 EXP_6
 #define TIMER_HANDLER_10                                \
-    printf("%d ", global++);                            \
-    if (global < N) {                                   \
-        pic8259_send_EOI(TIMER);                        \
-        sti();                                          \
-    }                                                   \
-    endless_loop();
-#define KEYBOARD_HANDLER_10
+    global = 0;
+#define USERSPACE_PROCESS_10                            \
+    for(;;) {                                           \
+        write(global);                                  \
+        global++;                                       \
+    }
 
-#define EXP_11                                          \
-    init_interrupts(TRAP);                              \
-    bool auto_eoi = false;                              \
-    pic8259_init_master(auto_eoi);                      \
-    pic8259_init_slave(auto_eoi);                       \
-    pic8259_turn(TIMER, true);                          \
-    sti();                                              \
-    endless_loop();
-#define TIMER_HANDLER_11                                \
-    printf("%d ", global++);                            \
-    u32 N = 52;                                         \
-    if (global < N) {                                   \
-        pic8259_send_EOI(TIMER);                        \
-    }                                                   \
-    endless_loop();
-#define KEYBOARD_HANDLER_11
-
-#define EXP_12                                          \
-    init_interrupts(INTERRUPT);                         \
-    bool auto_eoi = true;                               \
-    pic8259_init_master(auto_eoi);                      \
-    pic8259_init_slave(auto_eoi);                       \
-    pic8259_turn(TIMER, true);                          \
-    sti();                                              \
-    endless_loop();
-#define TIMER_HANDLER_12                                \
-    printf("%d ", global++);                            \
-    u32 N = 52;                                         \
-    if (global < N) {                                   \
-        sti();                                          \
-    }                                                   \
-    endless_loop();
-#define KEYBOARD_HANDLER_12
-
-#define EXP_13                                          \
-    init_interrupts(INTERRUPT);                         \
-    bool auto_eoi = true;                               \
-    pic8259_init_master(auto_eoi);                      \
-    pic8259_init_slave(auto_eoi);                       \
-    pic8259_turn(KEYBOARD, true);                       \
-    sti();                                              \
-    endless_loop();
-#define TIMER_HANDLER_13
-#define KEYBOARD_HANDLER_13                             \
-    printf("%x ", read_u8(0x60));
-
-#define EXP_14                                          \
-    init_interrupts(INTERRUPT);                         \
-    bool auto_eoi = true;                               \
-    pic8259_init_master(auto_eoi);                      \
-    pic8259_init_slave(auto_eoi);                       \
-    pic8259_turn(TIMER, true);                          \
-    pic8259_turn(KEYBOARD, true);                       \
-    sti();                                              \
-    endless_loop();
-#define TIMER_HANDLER_14                                \
-    printf("%d ", global++);
-#define KEYBOARD_HANDLER_14                             \
-    printf("%x ", read_u8(0x60));
-
-#define EXP_15 EXP_14
-#define TIMER_HANDLER_15                                \
-    printf("%d ", global++);                            \
-    endless_loop();
-#define KEYBOARD_HANDLER_15                             \
-    printf("%x ", read_u8(0x60));
-
-#define EXP_16 EXP_14
-#define TIMER_HANDLER_16                                \
-    printf("%d ", global++);
-#define KEYBOARD_HANDLER_16                             \
-    printf("%x ", read_u8(0x60));                       \
-    endless_loop();
-
-#define EXP_17 EXP_14
-#define TIMER_HANDLER_17                                \
-    printf("%d ", global++);
-#define KEYBOARD_HANDLER_17                             \
-    printf("%x ", read_u8(0x60));                       \
-    sti();                                              \
-    endless_loop();
-
-#define EXP_18                                          \
-    init_interrupts(TRAP);                              \
-    bool auto_eoi = false;                              \
-    pic8259_init_master(auto_eoi);                      \
-    pic8259_init_slave(auto_eoi);                       \
-    pic8259_turn(TIMER, true);                          \
-    pic8259_turn(KEYBOARD, true);                       \
-    sti();                                              \
-    endless_loop();
-#define TIMER_HANDLER_18                                \
-    printf("%d ", global++);                            \
-    endless_loop();
-#define KEYBOARD_HANDLER_18                             \
-    printf("%x ", read_u8(0x60));                       \
-    pic8259_send_EOI(KEYBOARD);                         \
-    endless_loop();
-
-#define EXP_19 EXP_18
-#define TIMER_HANDLER_19                                \
-    printf("%d ", global++);                            \
-    pic8259_send_EOI(TIMER);
-#define KEYBOARD_HANDLER_19                             \
-    printf("%x ", read_u8(0x60));                       \
-    endless_loop();
-
-#define EXP_20                                          \
-    init_interrupts(INTERRUPT);                         \
-    bool auto_eoi = true;                               \
-    pic8259_init_master(auto_eoi);                      \
-    pic8259_init_slave(auto_eoi);                       \
-    pic8259_turn(TIMER, true);                          \
-    pic8259_turn(KEYBOARD, true);                       \
-    sti();                                              \
-    endless_loop();
-#define TIMER_HANDLER_20                                \
-    pic8259_turn(TIMER, false);                         \
-    delay();                                            \
-    sti();                                              \
-    delay();
-#define KEYBOARD_HANDLER_20                             \
-    printf("%x ", read_u8(0x60));                       \
-    endless_loop();
-
-
-#endif EXPERIMENTS_H
+#endif
