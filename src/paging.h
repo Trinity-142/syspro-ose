@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include "types.h"
 
-#define USER_STACK_POINTER 0x800000
 #define MB (2 << 20)
 #define RAM (RAM_MB * MB)
 #define PAGE 4096

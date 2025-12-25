@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+#define USER_STACK_POINTER 0x800000
 #define APP_CODE 0x18
 #define APP_DATA 0x20
 #define USER_PL 3

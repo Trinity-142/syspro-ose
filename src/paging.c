@@ -7,6 +7,7 @@
 #include "mem.h"
 #include "panic.h"
 #include "printf.h"
+#include "userspace.h"
 
 PageDirectoryEntry* pd;
 
@@ -70,8 +71,9 @@ void cleanup_user_stack() {
 void expand_user_stack(u32 addr) {
     turn_paging_off();
     PageTableEntry* pt = (PageTableEntry*) (pd[1].pt_addr << 12);
-    u32 target = (addr - 0x400000) / PAGE;
-    for (i32 i = 1023; i >= (i32) target; --i) {
+    i32 to = ((i32) addr - POOL_START) / PAGE;
+    i32 from = (USER_STACK_POINTER - POOL_START) / PAGE - 1;
+    for (i32 i = from; i >= to; --i) {
         if (!pt[i].p) {
             pt[i].frame_addr = (u32) calloc_page() >> 12;
             pt[i].p = true;
