@@ -59,5 +59,6 @@ typedef struct {
 void universal_handler(Context* ctx);
 void init_interrupts(GateType interrupt_type);
 void print_context(Context* ctx);
+void set_interrupt_dpl(u32 vector, u8 dpl);
 
 #endif

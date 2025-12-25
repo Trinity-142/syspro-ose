@@ -16,6 +16,8 @@
 #define EXP_SETUP                                       															\
     vga_clear_screen();																								\
 	init_interrupts(INTERRUPT);																						\
+	set_interrupt_dpl(WRITE_VECTOR, USER_PL);																		\
+	set_interrupt_dpl(EXIT_VECTOR, USER_PL);																		\
 	bool auto_eoi = true;																							\
 	pic8259_init_master(auto_eoi);																					\
 	pic8259_init_slave(auto_eoi);																					\

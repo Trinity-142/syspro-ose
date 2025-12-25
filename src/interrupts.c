@@ -49,9 +49,10 @@ static Trampoline* setup_trampolines() {
     return trampolines;
 }
 
+InterruptDesc* idt;
 static void setup_idt(Trampoline* trampolines, GateType interrupt_type) {
     assert(sizeof(InterruptDesc) == 8);
-    InterruptDesc *idt = malloc_undead(sizeof(InterruptDesc) * 256, 8);
+    idt = malloc_undead(sizeof(InterruptDesc) * 256, 8);
     for (int vector = 0; vector < 256; ++vector) {
         InterruptDesc desc;
         u32 handler_addr = (u32) trampolines[vector].code;
@@ -62,7 +63,7 @@ static void setup_idt(Trampoline* trampolines, GateType interrupt_type) {
         desc.type = interrupt_type;
         desc.d = 1;
         desc.fixed2 = 0;
-        desc.dpl = (vector == WRITE_VECTOR || vector == EXIT_VECTOR ? 3 : 0);
+        desc.dpl = 0;
         desc.p = 1;
         desc.offset_16_31 = handler_addr >> 16 & 0xFFFF;
         idt[vector] = desc;
@@ -73,6 +74,10 @@ static void setup_idt(Trampoline* trampolines, GateType interrupt_type) {
 
 void init_interrupts(GateType interrupt_type) {
     setup_idt(setup_trampolines(), interrupt_type);
+}
+
+void set_interrupt_dpl(u32 vector, u8 dpl) {
+    idt[vector].dpl = dpl;
 }
 
 u32 global = 1;
