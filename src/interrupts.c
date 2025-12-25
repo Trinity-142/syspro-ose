@@ -2,7 +2,6 @@
 
 #include "interrupts.h"
 #include "alloc.h"
-#include "allocator.h"
 #include "panic.h"
 #include "types.h"
 #include "asm_utils.h"
@@ -12,7 +11,7 @@
 #include "printf.h"
 #include "userspace.h"
 
-bool has_error_code(u32 vector) {
+static bool has_error_code(u32 vector) {
     switch (vector) {
         case 8:
         case 10:
@@ -28,7 +27,7 @@ bool has_error_code(u32 vector) {
     }
 }
 
-Trampoline* setup_trampolines() {
+static Trampoline* setup_trampolines() {
     Trampoline* trampolines = malloc_undead(sizeof(Trampoline) * 256, 8);
     for (u16 vector = 0; vector < 256; ++vector) {
         Trampoline* trampoline = &trampolines[vector];
@@ -50,7 +49,7 @@ Trampoline* setup_trampolines() {
     return trampolines;
 }
 
-void setup_idt(Trampoline* trampolines, GateType interrupt_type) {
+static void setup_idt(Trampoline* trampolines, GateType interrupt_type) {
     assert(sizeof(InterruptDesc) == 8);
     InterruptDesc *idt = malloc_undead(sizeof(InterruptDesc) * 256, 8);
     for (int vector = 0; vector < 256; ++vector) {
@@ -77,10 +76,8 @@ void init_interrupts(GateType interrupt_type) {
 }
 
 u32 global = 1;
-u32 timer = 1;
-u32 N = 52;
 static void timer_handler(Context *ctx) {
-    TIMER_HANDLER(EXP_NUM);
+    global = 0;
 }
 
 static void keyboard_handler(Context *ctx) {}
@@ -98,7 +95,7 @@ static void exit_impl(Context *ctx) {
 }
 
 void universal_handler(Context *ctx) {
-    assert(sizeof(Context) == 68);
+    assert(sizeof(Context) == 76);
     switch (ctx->vector) {
         case TIMER_VECTOR:
             timer_handler(ctx);
@@ -113,23 +110,7 @@ void universal_handler(Context *ctx) {
             exit_impl(ctx);
             return;
         case PAGE_FAULT_VECTOR:
-            u32 cr2 = get_cr2();
-            bool us = ctx->error_code & (1 << 2);
-            //printf("CR2: %x\n", cr2);
-            if (us == 0) kernel_panic("Kernel panic: Page Fault in kernel space!\n");
-            else {
-                if (cr2 < 0x7000) printf("NullPointerException ");
-                else if (cr2 >= 0x80000 && cr2 < 0x400000) {
-                    printf("StackOverflowException ");
-                    endless_loop();
-                }
-                else if (cr2 >= 0x400000 && cr2 < USER_STACK_POINTER) {
-                    expand_user_stack(cr2);
-                    return;
-                }
-                else printf("UB ");
-                exit_impl(ctx);
-            }
+            PAGE_FAULT_HANDLER(EXP_NUM);
         default:
             print_context(ctx);
     }

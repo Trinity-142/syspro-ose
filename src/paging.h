@@ -1,10 +1,14 @@
 #ifndef PAGING_H
 #define PAGING_H
 #include <stdbool.h>
-
 #include "types.h"
 
 #define USER_STACK_POINTER 0x800000
+#define MB (2 << 20)
+#define RAM (RAM_MB * MB)
+#define PAGE 4096
+#define POOL_START 0x400000
+#define POOL_END RAM
 
 typedef struct {
     bool p : 1;
@@ -27,8 +31,6 @@ typedef struct {
 extern PageDirectoryEntry* pd;
 
 void init_paging();
-void init_page_directory();
-u8* init_page_table();
 void* alloc_user_stack();
 void cleanup_user_stack();
 void expand_user_stack(u32 addr);

@@ -1,5 +1,6 @@
 #include "userspace.h"
 #include "asm_utils.h"
+#include "experiments.h"
 #include "interrupts.h"
 
 void enter_userspace(void (*user_entry)(), void* user_stack) {
@@ -16,4 +17,12 @@ void enter_userspace(void (*user_entry)(), void* user_stack) {
     ctx.fs = APP_DATA | USER_PL;
     ctx.gs = APP_DATA | USER_PL;
     restore_user_context(&ctx);
+}
+
+static void user_main() {
+    USERSPACE_PROCESS(EXP_NUM);
+}
+
+void start_usercode() {
+    enter_userspace(user_main, alloc_user_stack());
 }
