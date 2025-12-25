@@ -14,6 +14,7 @@
 #define PF(n) PAGE_FAULT_HANDLER_##n
 
 #define EXP_SETUP                                       															\
+	init_paging();																									\
     vga_clear_screen();																								\
 	init_interrupts(INTERRUPT);																						\
 	set_interrupt_dpl(WRITE_VECTOR, USER_PL);																		\
@@ -23,7 +24,6 @@
 	pic8259_init_slave(auto_eoi);																					\
 	pic8259_turn(TIMER, true);																						\
 	sti();																											\
-	init_paging();																									\
 	param = 0;																										\
 	start_usercode();																								\
 	endless_loop();																									\
