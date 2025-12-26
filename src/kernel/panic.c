@@ -17,6 +17,7 @@ void kernel_panic(const char* fmt, ...) {
         .size = (Coords) {VGA_WIDTH, VGA_HEIGHT},
         .cursor = (Coords) {0, 0}
     };
+    init_console(&fullscreen, (Coords) {0,0}, (Coords) {VGA_WIDTH, VGA_HEIGHT});
     *current_process->console = fullscreen;
     va_list args;
     va_start(args, fmt);

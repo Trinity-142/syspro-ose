@@ -38,44 +38,48 @@ ASM_OBJECTS = $(patsubst src/kernel/%.asm, .tmp/kernel/%.o, $(ASM_SOURCES))
 			exit 1; \
 	  	fi
 
-# Userspace =========================================================================
+# Stdlib =========================================================================
 .tmp/userspace/%.o: src/stdlib/%.c
 		gcc -DRAM_MB=$(RAM_MB) -DEXP_NUM=$(EXP_NUM) -DKERNEL_SIZE=$(KERNEL_SIZE) $(CFLAGS) -c $< -o $@
 
 .tmp/userspace/%.asm.o: src/stdlib/%.asm
 		nasm $(ASMFLAGS) -dKERNEL_SIZE=$(KERNEL_SIZE) $< -o $@
 
-.tmp/userspace/%.o: src/apps/%.c
-		gcc -DRAM_MB=$(RAM_MB) -DEXP_NUM=$(EXP_NUM) -DKERNEL_SIZE=$(KERNEL_SIZE) $(CFLAGS) -c $< -o $@
-
-.tmp/userspace/%.o: src/apps/%.asm
-		nasm $(ASMFLAGS) -dKERNEL_SIZE=$(KERNEL_SIZE) $< -o $@
-
-
 STDLIB_C_SRC = $(wildcard src/stdlib/*.c)
 STDLIB_C_OBJ = $(patsubst src/stdlib/%.c, .tmp/userspace/%.o, $(STDLIB_C_SRC))
 STDLIB_ASM_SRC = $(wildcard src/stdlib/*.asm)
 STDLIB_ASM_OBJ = $(patsubst src/stdlib/%.asm, .tmp/userspace/%.asm.o, $(STDLIB_ASM_SRC))
 
-APPS_C_SRC = $(wildcard src/apps/*.c)
-APPS_C_OBJ = $(patsubst src/apps/%.c, .tmp/userspace/%.o, $(APPS_C_SRC))
-APPS_ASM_SRC = $(wildcard src/apps/*.asm)
-APPS_ASM_OBJ = $(patsubst src/apps/%.asm, .tmp/userspace/%.o, $(APPS_ASM_SRC))
+# Userspace =========================================================================
+APPS = $(notdir $(basename $(wildcard src/apps/*.c)))
 
-C_OBJECTS_USERSPACE = $(STDLIB_C_OBJ) $(APPS_C_OBJ)
-ASM_OBJECTS_USERSPACE = $(STDLIB_ASM_OBJ) $(APPS_ASM_OBJ)
+SHARED_OBJS = $(STDLIB_C_OBJ) $(STDLIB_ASM_OBJ)
 
-.tmp/userspace/userspace.elf: $(C_OBJECTS_USERSPACE) $(ASM_OBJECTS_USERSPACE) src/stdlib/link.ld
-		ld -m elf_i386 $(C_OBJECTS_USERSPACE) $(ASM_OBJECTS_USERSPACE) -T src/stdlib/link.ld -o .tmp/userspace/userspace.elf
+.tmp/userspace/%_app.o: src/apps/%.c
+		gcc -DRAM_MB=$(RAM_MB) -DEXP_NUM=$(EXP_NUM) -DKERNEL_SIZE=$(KERNEL_SIZE) $(CFLAGS) -c $< -o $@
 
-.tmp/userspace/userspace.bin: .tmp/userspace/userspace.elf
-		objcopy -I elf32-i386 -O binary .tmp/userspace/userspace.elf .tmp/userspace/userspace.bin
+.tmp/userspace/%_app.elf: .tmp/userspace/%_app.o $(SHARED_OBJS)
+		ld -m elf_i386 $^ -T src/stdlib/link.ld -o $@
+
+.tmp/userspace/%_app.bin: .tmp/userspace/%_app.elf
+		objcopy -I elf32-i386 -O binary $< $@
+
+# All цели
+APPS_ELF = $(addsuffix _app.elf, $(addprefix .tmp/userspace/,$(APPS)))
+APPS_BIN = $(addsuffix _app.bin, $(addprefix .tmp/userspace/,$(APPS)))
+
 
 # OS image ==========================================================================
-.tmp/os.bin: .tmp/kernel/kernel.bin .tmp/userspace/userspace.bin
-	cp .tmp/kernel/kernel.bin $@
-	truncate -s $$((0x18400)) $@
-	cat .tmp/userspace/userspace.bin >> $@
+.tmp/os.bin: .tmp/kernel/kernel.bin $(APPS_BIN)
+		cp .tmp/kernel/kernel.bin $@
+		truncate -s $$((0x18400)) $@
+		cat .tmp/userspace/endless_inc_app.bin >> $@
+		truncate -s $$((0x28400)) $@
+		cat .tmp/userspace/factorial_app.bin >> $@
+		truncate -s $$((0x38400)) $@
+		cat .tmp/userspace/foo_bar_baz_app.bin >> $@
+		truncate -s $$((0x48400)) $@
+		cat .tmp/userspace/soe_app.bin >> $@
 
 os.img:	.tmp/os.bin
 		dd if=/dev/zero of=os.img bs=1024 count=1440

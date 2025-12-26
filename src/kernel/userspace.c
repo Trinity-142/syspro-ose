@@ -24,10 +24,21 @@ void init_context(Context* ctx, void (*user_entry)(), void* user_stack, int argc
     ctx->gs = APP_DATA | USER_PL;
 }
 
-void start_usercode() {
+void jump_to_current_process() {
     set_cr3(current_process->pd);
     turn_paging_on();
     restore_user_context(&current_process->ctx);
+}
+
+void jump_to_next_process() {
+    u32 curr = current_process - processes;
+    for (u32 i = curr + 1; i <= curr + 4; i++) {
+        if (!processes[i % 4].terminated) {
+            current_process = &processes[i % 4];
+            jump_to_current_process();
+        }
+    }
+    endless_loop();
 }
 
 void init_curr_process(u32 code_addr, Console* console, int argc, ...) {

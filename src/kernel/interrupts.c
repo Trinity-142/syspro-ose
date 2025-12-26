@@ -11,6 +11,7 @@
 #include "printf.h"
 #include "userspace.h"
 #include "vga.h"
+#include "paging.h"
 
 static bool has_error_code(u32 vector) {
     switch (vector) {
@@ -82,6 +83,8 @@ void set_interrupt_dpl(u32 vector, u8 dpl) {
 }
 
 static void timer_handler(Context *ctx) {
+    current_process->ctx = *ctx;
+    jump_to_next_process();
 }
 
 static void keyboard_handler(Context *ctx) {}
@@ -105,8 +108,13 @@ u32 param;
 static void exit_handler(Context *ctx) {
     printf("---------\n");
     printf("process exited with code: %d\n", ctx->eax);
-    cleanup_user_stack();
-    endless_loop();
+    turn_paging_off();
+    cleanup_process();
+    current_process->terminated = true;
+    assert(kalloc == kfree);
+    //init_curr_process(0x20000, &consoles[0], 0);
+    //jump_to_current_process();
+    //endless_loop();
 }
 
 void universal_handler(Context *ctx) {
@@ -130,12 +138,13 @@ void universal_handler(Context *ctx) {
             bool us = ctx->error_code & (1 << 2);
             assert((pl == 3 && us == 1) || (pl == 0 && us == 0));
             u32 cr2 = get_cr2();
+            printf("CR2: %x\n", cr2);
             if (cr2 < 0x200000) printf("NPE\n");
             else if (cr2 < 0x400000) printf("SOE\n");
             else if (cr2 < USER_STACK_POINTER) {
                 expand_user_stack(cr2);
                 return;
-            } else printf("UB: ");
+            } else printf("UB\n");
             exit_handler(ctx);
         default:
             print_context(ctx);

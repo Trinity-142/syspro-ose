@@ -26,7 +26,7 @@
 	sti();																											\
 	param = 0;																										\
 	endless_loop();																									\
-	start_usercode();																								\
+	jump_to_current_process();																								\
 //================================================================================================================== 1
 #define INIT_PAGING_1                                   															\
 	pd = calloc_page();																								\

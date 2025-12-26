@@ -28,6 +28,5 @@ void turn_paging_off();
 void set_cr3(PageDirectoryEntry* pd);
 u32 get_cr2();
 void endless_rec();
-void n_rec(u32 param);
 
 #endif

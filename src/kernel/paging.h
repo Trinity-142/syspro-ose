@@ -10,6 +10,9 @@
 #define POOL_START 0x400000
 #define POOL_END RAM
 
+extern u32 kalloc;
+extern u32 kfree;
+
 #pragma pack(push, 1)
 typedef struct {
     bool p : 1;
@@ -35,7 +38,7 @@ _Static_assert(sizeof(PageDirectoryEntry) == 4, "pde size != 4");
 PageDirectoryEntry* init_pd();
 void* alloc_user_code(u32 addr);
 void* alloc_user_stack();
-void cleanup_user_stack();
+void cleanup_process();
 void expand_user_stack(u32 addr);
 char** alloc_argc_argv(int argc, va_list argv);
 

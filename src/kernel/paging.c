@@ -12,15 +12,20 @@
 u8* freed = NULL;
 u8* cursor = (u8*) POOL_START;
 
+u32 kalloc = 0;
+u32 kfree = 0;
+
 static void* alloc_page() {
     if (freed != NULL) {
         u8* res = freed;
         freed = *(u8**)res;
+        kalloc++;
         return res;
     }
     if (cursor + PAGE <= (u8*) POOL_END) {
         u8* res = cursor;
         cursor += PAGE;
+        kalloc++;
         return res;
     }
     kernel_panic("Out of memory");
@@ -31,6 +36,7 @@ static void free_page(void* block) {
     if (!block) { return; }
     *(u8**)block = freed;
     freed = block;
+    kfree++;
 }
 
 static void* calloc_page() {
@@ -43,7 +49,7 @@ PageDirectoryEntry* init_pd() {
     pd->pt_addr = 0;
     pd->p = true;
     pd->r_w = true;
-    pd->u_s = true;
+    pd->u_s = false;
     pd->ps = true;
     return pd;
 }
@@ -76,8 +82,7 @@ void* alloc_user_stack() {
     return (void*) USER_STACK_POINTER;
 }
 
-void cleanup_user_stack() {
-    turn_paging_off();
+void cleanup_process() {
     PageDirectoryEntry* pd = current_process->pd;
     PageTableEntry* pt = (PageTableEntry*) (pd[1].pt_addr << 12);
     for (u32 i = 0; i < 1024; i++) {
@@ -87,8 +92,17 @@ void cleanup_user_stack() {
     }
     pd[1].p = false;
     free_page(pt);
-    //free_page((void*) (pd[2].pt_addr << 12));
-    turn_paging_on();
+
+    pt = (PageTableEntry*) (pd[2].pt_addr << 12);
+    for (u32 i = 16; i < 1024; i++) {
+        if (pt[i].p) {
+            free_page((void*) (pt[i].frame_addr << 12));
+        }
+    }
+    pd[2].p = false;
+    free_page(pt);
+
+    free_page(pd);
 }
 
 void expand_user_stack(u32 addr) {

@@ -19,12 +19,14 @@ typedef struct {
     Context ctx;
     Console* console;
     PageDirectoryEntry* pd;
+    bool terminated;
 } Process;
 
 extern Process processes[4];
 extern Process* current_process;
 
-void start_usercode();
+void jump_to_current_process();
+void jump_to_next_process();
 void init_context(Context* ctx, void (*user_entry)(), void* user_stack, int argc, char** argv);
 void init_curr_process(u32 code_addr, Console* console, int argc, ...);
 
