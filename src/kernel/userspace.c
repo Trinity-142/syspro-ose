@@ -3,8 +3,10 @@
 #include "experiments.h"
 #include "interrupts.h"
 
-void enter_userspace(void (*user_entry)(), void* user_stack) {
+void enter_userspace(void (*user_entry)(), void* user_stack, int argc, char** argv) {
     Context ctx;
+    ctx.eax = argc;
+    ctx.ecx = (u32) argv;
 
     ctx.ss_user = APP_DATA | USER_PL;
     ctx.esp_user = (u32) user_stack;
@@ -24,5 +26,10 @@ static void user_main() {
 }
 
 void start_usercode() {
-    enter_userspace(alloc_user_code(0x20000), alloc_user_stack());
+    set_cr3(pd);
+    turn_paging_on();
+    void* entry = alloc_user_code(0x20000);
+    void* stack = alloc_user_stack();
+    char** argv = alloc_argc_argv(3, "foo", "bar", "baz");
+    enter_userspace(entry, stack, 3, argv);
 }

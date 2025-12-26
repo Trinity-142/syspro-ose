@@ -38,5 +38,6 @@ void* alloc_user_code(u32 addr);
 void* alloc_user_stack();
 void cleanup_user_stack();
 void expand_user_stack(u32 addr);
+char** alloc_argc_argv(int argc, ...);
 
 #endif

@@ -104,9 +104,9 @@ static void print_char_handler(Context *ctx) {
 
 u32 param;
 static void exit_handler(Context *ctx) {
-    cleanup_user_stack();
     printf("---------\n");
     printf("process exited with code: %d\n", ctx->eax);
+    cleanup_user_stack();
     endless_loop();
 }
 

@@ -47,8 +47,8 @@ void init_paging() {
     pd->r_w = true;
     pd->u_s = true;
     pd->ps = true;
-    set_cr3(pd);
-    turn_paging_on();
+    //set_cr3(pd);
+    //turn_paging_on();
 }
 
 void* alloc_user_code(u32 addr) {
@@ -116,4 +116,44 @@ void expand_user_stack(u32 addr) {
         }
     }
     turn_paging_on();
+}
+
+u32 strlen(char* str) {
+    if (!str) { return 0; }
+    u32 i = 0;
+    for (const char* c = str; *c; c++) i++;
+    return i;
+}
+
+char** valloc_argc_argv(int argc, va_list argv) {
+    turn_paging_off();
+    PageTableEntry* pt = (PageTableEntry*) (pd[2].pt_addr << 12);
+    char** argv_page = calloc_page();
+    pt[16].frame_addr = (u32) argv_page >> 12;
+    pt[16].p = true;
+    pt[16].r_w = true;
+    pt[16].u_s = true;
+    for (u32 i = 0; i < argc; i++) {
+        argv_page[i] = (char*) (0x811000 + i * PAGE);
+    }
+
+    for (u32 i = 0; i < argc; i++) {
+        char* arg_page = calloc_page();
+        pt[17 + i].frame_addr = (u32) arg_page >> 12;
+        pt[17 + i].p = true;
+        pt[17 + i].r_w = true;
+        pt[17 + i].u_s = true;
+        char* arg = va_arg(argv, char*);
+        memmove(arg_page, arg, strlen(arg) + 1);
+    }
+    turn_paging_on();
+    return (char**) USER_ARGV_POINTER;
+}
+
+char** alloc_argc_argv(int argc, ...) {
+    va_list argv;
+    va_start(argv, argc);
+    char** res = valloc_argc_argv(argc, argv);
+    va_end(argv);
+    return res;
 }
