@@ -62,10 +62,6 @@ void print_unsigned(u32 number, u32 radix) {
 }
 
 void print_signed(i32 number) {
-    if (number == 0) {
-        printf("ZERO!");
-        endless_loop();
-    }
     if (number < 0) {
         putchar('-');
         number *= -1;

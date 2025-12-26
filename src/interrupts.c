@@ -8,8 +8,10 @@
 #include "assert.h"
 #include "experiments.h"
 #include "pic8259.h"
+#include "printf.h"
+#include "userspace.h"
 
-bool has_error_code(u32 vector) {
+static bool has_error_code(u32 vector) {
     switch (vector) {
         case 8:
         case 10:
@@ -25,7 +27,7 @@ bool has_error_code(u32 vector) {
     }
 }
 
-Trampoline* setup_trampolines() {
+static Trampoline* setup_trampolines() {
     Trampoline* trampolines = malloc_undead(sizeof(Trampoline) * 256, 8);
     for (u16 vector = 0; vector < 256; ++vector) {
         Trampoline* trampoline = &trampolines[vector];
@@ -47,9 +49,10 @@ Trampoline* setup_trampolines() {
     return trampolines;
 }
 
-void setup_idt(Trampoline* trampolines, GateType interrupt_type) {
+InterruptDesc* idt;
+static void setup_idt(Trampoline* trampolines, GateType interrupt_type) {
     assert(sizeof(InterruptDesc) == 8);
-    InterruptDesc *idt = malloc_undead(sizeof(InterruptDesc) * 256, 8);
+    idt = malloc_undead(sizeof(InterruptDesc) * 256, 8);
     for (int vector = 0; vector < 256; ++vector) {
         InterruptDesc desc;
         u32 handler_addr = (u32) trampolines[vector].code;
@@ -60,7 +63,7 @@ void setup_idt(Trampoline* trampolines, GateType interrupt_type) {
         desc.type = interrupt_type;
         desc.d = 1;
         desc.fixed2 = 0;
-        desc.dpl = (vector == SYSCALL_HANDLER_VECTOR ? 3 : 0);
+        desc.dpl = 0;
         desc.p = 1;
         desc.offset_16_31 = handler_addr >> 16 & 0xFFFF;
         idt[vector] = desc;
@@ -73,11 +76,13 @@ void init_interrupts(GateType interrupt_type) {
     setup_idt(setup_trampolines(), interrupt_type);
 }
 
+void set_interrupt_dpl(u32 vector, u8 dpl) {
+    idt[vector].dpl = dpl;
+}
+
 u32 global = 1;
-u32 timer = 1;
-u32 N = 52;
 static void timer_handler(Context *ctx) {
-    TIMER_HANDLER(EXP_NUM);
+    global = 0;
 }
 
 static void keyboard_handler(Context *ctx) {}
@@ -86,34 +91,49 @@ static void syscall_handler(Context *ctx) {
     printf("%d ", ctx->eax);
 }
 
+u32 param;
+static void exit_impl(Context *ctx) {
+    cleanup_user_stack();
+    printf("%d\n", ctx->eax);
+    param++;
+    start_usercode();
+}
+
 void universal_handler(Context *ctx) {
-    assert(sizeof(Context) == 68);
+    assert(sizeof(Context) == 76);
     switch (ctx->vector) {
-        case TIMER_HANDLER_VECTOR:
+        case TIMER_VECTOR:
             timer_handler(ctx);
             return;
-        case KEYBOARD_HANDLER_VECTOR:
+        case KEYBOARD_VECTOR:
             keyboard_handler(ctx);
             return;
-        case SYSCALL_HANDLER_VECTOR:
+        case WRITE_VECTOR:
             syscall_handler(ctx);
             return;
+        case EXIT_VECTOR:
+            exit_impl(ctx);
+            return;
+        case PAGE_FAULT_VECTOR:
+            PAGE_FAULT_HANDLER(EXP_NUM);
         default:
             print_context(ctx);
     }
 }
 
 void print_context(Context* ctx) {
-    kernel_panic("Kernel panic: unhandled interrupt #%d at 0x%x:0x%x\n\n"
+    kernel_panic("Kernel panic: unhandled interrupt #%d at %x:%x\n"
+                    "CR2: %x\n\n"
                     "Registers:\n"
-                    "  EAX: 0x%x, ECX: 0x%x, EDX: 0x%x, EBX: 0x%x\n"
-                    "  ESP: 0x%x, EBP: 0x%x, ESI: 0x%x, EDI: 0x%x\n"
-                    "  DS : 0x%x, ES : 0x%x, FS : 0x%x, GS : 0x%x\n\n"
+                    "  EAX: %x, ECX: %x, EDX: %x, EBX: %x\n"
+                    "  ESP: %x, EBP: %x, ESI: %x, EDI: %x\n"
+                    "  DS : %x, ES : %x, FS : %x, GS : %x\n\n"
                     "Error code:\n"
-                    "  %s, value: 0x%x\n\n"
+                    "  %s, value: %x\n\n"
                     "EFLAGS:\n"
-                    "  value: 0x%x",
+                    "  value: %x",
                     ctx->vector, ctx->cs, ctx->eip,
+                    get_cr2(),
                     ctx->eax, ctx->ecx, ctx->edx, ctx->ebx,
                     ctx->esp, ctx->ebp, ctx->esi, ctx->edi,
                     ctx->ds, ctx->es, ctx->fs, ctx->gs,

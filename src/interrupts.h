@@ -5,7 +5,9 @@
 #include "types.h"
 
 #define TRAMPOLINE_SIZE 8
-#define SYSCALL_HANDLER_VECTOR 0x80
+#define WRITE_VECTOR 0x30
+#define EXIT_VECTOR 0x31
+#define PAGE_FAULT_VECTOR 14
 
 extern u32 global;
 extern u32 N;
@@ -37,8 +39,8 @@ typedef struct {
     u32 eip;
     u32 cs;
     u32 eflags;
-    u32 esp_privileged;
-    u32 ss_privileged;
+    u32 esp_user;
+    u32 ss_user;
 } Context;
 
 typedef struct {
@@ -57,5 +59,6 @@ typedef struct {
 void universal_handler(Context* ctx);
 void init_interrupts(GateType interrupt_type);
 void print_context(Context* ctx);
+void set_interrupt_dpl(u32 vector, u8 dpl);
 
 #endif

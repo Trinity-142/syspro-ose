@@ -1,13 +1,8 @@
-#include "printf.h"
-#include "alloc.h"
 #include "asm_utils.h"
 #include "experiments.h"
 #include "vga.h"
-
-void user_main() {
-	USERSPACE_PROCESS(EXP_NUM);
-}
+#include "userspace.h"
 
 void kernel_entry() {
-	EXPERIMENT(EXP_NUM);
+    EXP_SETUP;
 }

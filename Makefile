@@ -2,12 +2,15 @@
 # Variables
 KERNEL_SIZE ?= 8192
 DEBUG ?= 0
+RAM_MB ?= 1024
 EXP_NUM ?= 1
 # Build tools
 ifeq ($(DEBUG),1)
-	CFLAGS = -DDEBUG -std=c99 -m32 -O2 -ffreestanding -no-pie -fno-pie -mno-sse -fno-stack-protector
+	CFLAGS = -DDEBUG -g -std=c99 -m32 -O0 -ffreestanding -no-pie -fno-pie -mno-sse -fno-stack-protector
+	ASMFLAGS = -felf -g
 else
 	CFLAGS = -std=c99 -m32 -O2 -ffreestanding -no-pie -fno-pie -mno-sse -fno-stack-protector
+	ASMFLAGS = -felf
 endif
 # =============================================================================
 # Tasks
@@ -15,10 +18,10 @@ endif
 all: clean build test
 
 .tmp/%.o: src/%.c
-		gcc -DEXP_NUM=$(EXP_NUM) -DKERNEL_SIZE=$(KERNEL_SIZE) $(CFLAGS) -c $< -o $@
+		gcc -DRAM_MB=$(RAM_MB) -DEXP_NUM=$(EXP_NUM) -DKERNEL_SIZE=$(KERNEL_SIZE) $(CFLAGS) -c $< -o $@
 
 .tmp/%.o: src/%.asm
-		nasm -felf -dKERNEL_SIZE=$(KERNEL_SIZE) $< -o $@
+		nasm $(ASMFLAGS) -dKERNEL_SIZE=$(KERNEL_SIZE) $< -o $@
 
 C_SOURCES = $(wildcard src/*.c)
 C_OBJECTS = $(patsubst src/%.c, .tmp/%.o, $(C_SOURCES))
@@ -47,12 +50,12 @@ clean:
 		mkdir .tmp
 
 test: build
-		qemu-system-i386 -cpu pentium2 -m 1g -fda os.img -monitor stdio -device VGA
+		qemu-system-i386 -cpu pentium2 -m $(RAM_MB)m -fda os.img -monitor stdio -device VGA
 
-debug: build
-		qemu-system-i386 -cpu pentium2 -m 1g -fda os.img -monitor stdio -device VGA -s -S &
-		sleep 2
-		gdb -x .gdbinit
+debug: clean build
+		qemu-system-i386 -cpu pentium2 -m $(RAM_MB)m -fda os.img -monitor stdio -device VGA -s -S &
+		#sleep 2
+		#gdb -x .gdbinit
 
 .PHONY: all build clean test debug
 

@@ -9,4 +9,4 @@
 
 %define TSS_LIMIT 107
 
-%define SYSCALL_HANDLER_VECTOR 0x80
+%define WRITE_VECTOR 0x30

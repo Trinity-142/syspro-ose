@@ -33,7 +33,7 @@ division_by_zero:
 
 [GLOBAL write]
 write:
-    int SYSCALL_HANDLER_VECTOR
+    int WRITE_VECTOR
     ret
 
 [GLOBAL sti]
@@ -140,3 +140,54 @@ get_eflags:
     pushfd
     pop eax
     ret
+
+[GLOBAL turn_paging_on]
+turn_paging_on:
+    mov eax, cr4
+    or eax, 1 << 4
+    mov cr4, eax
+
+    mov eax, cr0
+    or eax, 1 << 31
+    mov cr0, eax
+    ret
+
+[GLOBAL turn_paging_off]
+turn_paging_off:
+    mov eax, cr0
+    and eax, ~(1 << 31)
+    mov cr0, eax
+    ret
+
+[GLOBAL set_cr3]
+set_cr3:
+    mov eax, [esp + 4]
+    mov cr3, eax
+
+[GLOBAL get_cr2]
+get_cr2:
+    mov eax, cr2
+    ret
+
+[GLOBAL exit]
+exit:
+    mov eax, [esp + 4]
+    int 0x31
+
+[GLOBAL endless_rec]
+endless_rec:
+    sub esp, 4092
+    call endless_rec
+
+[GLOBAL n_rec]
+n_rec:
+    mov eax, [esp + 4]
+    cmp eax, 0
+    jz to_ret
+        sub esp, 40952 ;4088 ;40952
+        sub eax, 1
+        push eax
+        call n_rec
+        add esp, 40956 ;4092 ;40956
+    to_ret:
+        ret

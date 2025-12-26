@@ -1,12 +1,13 @@
 #include "userspace.h"
 #include "asm_utils.h"
+#include "experiments.h"
 #include "interrupts.h"
 
 void enter_userspace(void (*user_entry)(), void* user_stack) {
     Context ctx;
 
-    ctx.ss_privileged = APP_DATA | USER_PL;
-    ctx.esp_privileged = (u32) user_stack;
+    ctx.ss_user = APP_DATA | USER_PL;
+    ctx.esp_user = (u32) user_stack;
     ctx.eflags = get_eflags() & 0xFFFFCFFF | 0x200; // IOPL = 0; IF = 1
     ctx.cs = APP_CODE | USER_PL;
     ctx.eip = (u32) user_entry;
@@ -16,4 +17,12 @@ void enter_userspace(void (*user_entry)(), void* user_stack) {
     ctx.fs = APP_DATA | USER_PL;
     ctx.gs = APP_DATA | USER_PL;
     restore_user_context(&ctx);
+}
+
+static void user_main() {
+    USERSPACE_PROCESS(EXP_NUM);
+}
+
+void start_usercode() {
+    enter_userspace(user_main, alloc_user_stack());
 }
