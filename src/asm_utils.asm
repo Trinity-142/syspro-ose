@@ -143,9 +143,6 @@ get_eflags:
 
 [GLOBAL turn_paging_on]
 turn_paging_on:
-    mov eax, [esp + 4]
-    mov cr3, eax
-
     mov eax, cr4
     or eax, 1 << 4
     mov cr4, eax
@@ -161,6 +158,11 @@ turn_paging_off:
     and eax, ~(1 << 31)
     mov cr0, eax
     ret
+
+[GLOBAL set_cr3]
+set_cr3:
+    mov eax, [esp + 4]
+    mov cr3, eax
 
 [GLOBAL get_cr2]
 get_cr2:

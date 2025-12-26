@@ -65,7 +65,7 @@ void cleanup_user_stack() {
     }
     pd[1].p = false;
     free_page(pt);
-    turn_paging_on(pd);
+    turn_paging_on();
 }
 
 void expand_user_stack(u32 addr) {
@@ -81,5 +81,5 @@ void expand_user_stack(u32 addr) {
             pt[i].u_s = true;
         }
     }
-    turn_paging_on(pd);
+    turn_paging_on();
 }

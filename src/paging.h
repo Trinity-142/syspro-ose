@@ -9,6 +9,7 @@
 #define POOL_START 0x400000
 #define POOL_END RAM
 
+#pragma pack(push, 1)
 typedef struct {
     bool p : 1;
     bool r_w : 1;
@@ -16,6 +17,7 @@ typedef struct {
     u16 available : 9;
     u32 frame_addr : 20;
 } PageTableEntry;
+_Static_assert(sizeof(PageTableEntry) == 4, "pte size != 4");
 
 typedef struct {
     bool p : 1;
@@ -26,6 +28,8 @@ typedef struct {
     u32 available2 : 4;
     u32 pt_addr : 20;
 } PageDirectoryEntry;
+_Static_assert(sizeof(PageDirectoryEntry) == 4, "pde size != 4");
+#pragma pack(pop)
 
 extern PageDirectoryEntry* pd;
 

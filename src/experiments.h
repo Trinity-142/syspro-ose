@@ -35,7 +35,8 @@
     pd->r_w = true;                                     															\
     pd->u_s = true;                                     															\
     pd->ps = true;                                      															\
-    turn_paging_on(pd);
+    set_cr3(pd);																									\
+    turn_paging_on();
 #define ALLOC_USER_STACK_1																							\
 	return malloc_undead(4096, 16) + 4096;
 #define USERSPACE_PROCESS_1																							\
@@ -52,7 +53,8 @@
     pd->r_w = true;                                     															\
     pd->u_s = false;                                    															\
     pd->ps = true;                                      															\
-    turn_paging_on(pd);
+    set_cr3(pd);																									\
+    turn_paging_on();
 #define ALLOC_USER_STACK_2 ALLOC_USER_STACK_1
 #define USERSPACE_PROCESS_2 USERSPACE_PROCESS_1
 #define PAGE_FAULT_HANDLER_2
@@ -71,7 +73,8 @@
         pt[i].r_w = true;                               															\
         pt[i].u_s = true;																							\
     }                                                   															\
-    turn_paging_on(pd);
+    set_cr3(pd);																									\
+    turn_paging_on();
 #define ALLOC_USER_STACK_3 ALLOC_USER_STACK_1
 #define USERSPACE_PROCESS_3 USERSPACE_PROCESS_1
 #define PAGE_FAULT_HANDLER_3
@@ -90,7 +93,8 @@
         pt[i].r_w = true;                               															\
         pt[i].u_s = true;																							\
     }                                                   															\
-    turn_paging_on(pd);
+    set_cr3(pd);																									\
+    turn_paging_on();
 #define ALLOC_USER_STACK_4	ALLOC_USER_STACK_1
 #define USERSPACE_PROCESS_4	USERSPACE_PROCESS_1
 #define PAGE_FAULT_HANDLER_4
@@ -109,7 +113,8 @@
         pt[i].r_w = true;                               															\
         pt[i].u_s = false;																							\
     }                                                   															\
-    turn_paging_on(pd);
+    set_cr3(pd);																									\
+    turn_paging_on();
 #define ALLOC_USER_STACK_5	ALLOC_USER_STACK_1
 #define USERSPACE_PROCESS_5	USERSPACE_PROCESS_1
 #define PAGE_FAULT_HANDLER_5
@@ -130,7 +135,8 @@
             pt[i].u_s = false;                          															\
         } else pt[i].u_s = true;																					\
     }                                                   															\
-    turn_paging_on(pd);
+    set_cr3(pd);																									\
+    turn_paging_on();
 #define ALLOC_USER_STACK_6	ALLOC_USER_STACK_1
 #define USERSPACE_PROCESS_6 USERSPACE_PROCESS_1
 #define PAGE_FAULT_HANDLER_6
@@ -175,7 +181,8 @@
         pt[i].u_s = true;																							\
     }                                                   															\
 																													\
-    turn_paging_on(pd);
+    set_cr3(pd);																									\
+    turn_paging_on();
 #define ALLOC_USER_STACK_8 return (void*) USER_STACK_POINTER;
 #define USERSPACE_PROCESS_8	USERSPACE_PROCESS_1;
 #define PAGE_FAULT_HANDLER_8
@@ -198,7 +205,8 @@
             pt[i].u_s = true;                           															\
         }                                               															\
     }                                                   															\
-    turn_paging_on(pd);
+    set_cr3(pd);																									\
+    turn_paging_on();
 #define ALLOC_USER_STACK_9																							\
 	turn_paging_off();																								\
 	PageTableEntry* pt = calloc_page();																				\
@@ -213,7 +221,7 @@
         pt[i].r_w = true;                               															\
         pt[i].u_s = true;																							\
     }                                                   															\
-    turn_paging_on(pd);																								\
+    turn_paging_on();																								\
 	return (void*) USER_STACK_POINTER;
 #define USERSPACE_PROCESS_9																							\
 	exit(param);
@@ -252,7 +260,7 @@
 	pd[1].r_w = true;																								\
 	pd[1].u_s = true;																								\
 	pd[1].ps = false;																								\
-    turn_paging_on(pd);																								\
+    turn_paging_on();																								\
 	return (void*) USER_STACK_POINTER;
 #define USERSPACE_PROCESS_11																						\
     n_rec(param);																									\
