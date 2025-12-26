@@ -34,6 +34,7 @@ _Static_assert(sizeof(PageDirectoryEntry) == 4, "pde size != 4");
 extern PageDirectoryEntry* pd;
 
 void init_paging();
+void* alloc_user_code(u32 addr);
 void* alloc_user_stack();
 void cleanup_user_stack();
 void expand_user_stack(u32 addr);

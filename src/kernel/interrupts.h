@@ -5,8 +5,8 @@
 #include "types.h"
 
 #define TRAMPOLINE_SIZE 8
-#define WRITE_VECTOR 0x30
-#define EXIT_VECTOR 0x31
+#define EXIT_VECTOR 0x30
+#define PRINT_CHAR_VECTOR 0x31
 #define PAGE_FAULT_VECTOR 14
 
 extern u32 global;

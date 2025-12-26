@@ -1,4 +1,4 @@
-%include "src/consts.inc"
+%include "src/kernel/consts.inc"
 
 [GLOBAL cli]
 cli:
@@ -29,11 +29,6 @@ set_gprs:
 [GLOBAL division_by_zero]
 division_by_zero:
     div eax
-    ret
-
-[GLOBAL write]
-write:
-    int WRITE_VECTOR
     ret
 
 [GLOBAL sti]
@@ -168,11 +163,6 @@ set_cr3:
 get_cr2:
     mov eax, cr2
     ret
-
-[GLOBAL exit]
-exit:
-    mov eax, [esp + 4]
-    int 0x31
 
 [GLOBAL endless_rec]
 endless_rec:

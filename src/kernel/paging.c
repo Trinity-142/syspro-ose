@@ -41,11 +41,44 @@ static void* calloc_page() {
 }
 
 void init_paging() {
-    INIT_PAGING(EXP_NUM);
+    pd = calloc_page();
+    pd->pt_addr = 0;
+    pd->p = true;
+    pd->r_w = true;
+    pd->u_s = true;
+    pd->ps = true;
+    set_cr3(pd);
+    turn_paging_on();
+}
+
+void* alloc_user_code(u32 addr) {
+    turn_paging_off();
+    PageTableEntry* pt = calloc_page();
+    pd[2].pt_addr = (u32) pt >> 12;
+    pd[2].p = true;
+    pd[2].r_w = true;
+    pd[2].u_s = true;
+    pd[2].ps = false;
+    for (u32 i = 0; i < 16; i++) {
+        pt[i].frame_addr = (addr + i * PAGE) >> 12;
+        pt[i].p = true;
+        pt[i].r_w = true;
+        pt[i].u_s = true;
+    }
+    turn_paging_on();
+    return (void*) USER_CODE_POINTER;
 }
 
 void* alloc_user_stack() {
-    ALLOC_USER_STACK(EXP_NUM);
+    turn_paging_off();
+    PageTableEntry* pt = calloc_page();
+    pd[1].pt_addr = (u32) pt >> 12;
+    pd[1].p = true;
+    pd[1].r_w = true;
+    pd[1].u_s = true;
+    pd[1].ps = false;
+    turn_paging_on();
+    return (void*) USER_STACK_POINTER;
 }
 
 void cleanup_user_stack() {
@@ -65,6 +98,7 @@ void cleanup_user_stack() {
     }
     pd[1].p = false;
     free_page(pt);
+    //free_page((void*) (pd[2].pt_addr << 12));
     turn_paging_on();
 }
 

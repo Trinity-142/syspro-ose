@@ -17,7 +17,7 @@
 	init_paging();																									\
     vga_clear_screen();																								\
 	init_interrupts(INTERRUPT);																						\
-	set_interrupt_dpl(WRITE_VECTOR, USER_PL);																		\
+	set_interrupt_dpl(PRINT_CHAR_VECTOR, USER_PL);																	\
 	set_interrupt_dpl(EXIT_VECTOR, USER_PL);																		\
 	bool auto_eoi = true;																							\
 	pic8259_init_master(auto_eoi);																					\
@@ -25,8 +25,8 @@
 	pic8259_turn(TIMER, true);																						\
 	sti();																											\
 	param = 0;																										\
-	start_usercode();																								\
 	endless_loop();																									\
+	start_usercode();																								\
 //================================================================================================================== 1
 #define INIT_PAGING_1                                   															\
 	pd = calloc_page();																								\
@@ -41,7 +41,7 @@
 	return malloc_undead(4096, 16) + 4096;
 #define USERSPACE_PROCESS_1																							\
 	for (;;) {																										\
-		write(global);																								\
+		print_char(global);																								\
 		global++;																									\
 	}
 #define PAGE_FAULT_HANDLER_1
@@ -189,22 +189,11 @@
 //================================================================================================================== 9
 #define INIT_PAGING_9																								\
     pd = calloc_page();																								\
-    PageTableEntry* pt = calloc_page();																				\
-    pd->pt_addr = (u32) pt >> 12;                       															\
+    pd->pt_addr = 0;				                       															\
     pd->p = true;                                       															\
     pd->r_w = true;                                     															\
     pd->u_s = true;                                     															\
-    pd->ps = false;                                     															\
-    for (u32 i = 0; i < 1024; i++) {                    															\
-        pt[i].frame_addr = (i * PAGE) >> 12;            															\
-        pt[i].p = true;                                 															\
-        pt[i].r_w = true;                               															\
-        if (pt[i].frame_addr < 0x7 || (pt[i].frame_addr >= 0x80 && pt[i].frame_addr < 0x400)) {						\
-            pt[i].u_s = false;                          															\
-        } else {                                        															\
-            pt[i].u_s = true;                           															\
-        }                                               															\
-    }                                                   															\
+    pd->ps = true;	                                     															\
     set_cr3(pd);																									\
     turn_paging_on();
 #define ALLOC_USER_STACK_9																							\

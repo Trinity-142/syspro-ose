@@ -12,7 +12,7 @@ void lidt(u64* pseudo_desc);
 void collect_context();
 void set_gprs();
 void division_by_zero();
-void write(u32 value);
+void print_char(char c);
 void sti();
 void write_u8(Port port, u8 value);
 u8 read_u8(Port port);
@@ -27,7 +27,6 @@ void turn_paging_on();
 void turn_paging_off();
 void set_cr3(PageDirectoryEntry* pd);
 u32 get_cr2();
-void exit(u32 status);
 void endless_rec();
 void n_rec(u32 param);
 

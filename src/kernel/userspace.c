@@ -24,5 +24,5 @@ static void user_main() {
 }
 
 void start_usercode() {
-    enter_userspace(user_main, alloc_user_stack());
+    enter_userspace(alloc_user_code(0x20000), alloc_user_stack());
 }

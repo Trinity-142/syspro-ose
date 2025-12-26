@@ -10,6 +10,7 @@
 #include "pic8259.h"
 #include "printf.h"
 #include "userspace.h"
+#include "vga.h"
 
 static bool has_error_code(u32 vector) {
     switch (vector) {
@@ -87,35 +88,58 @@ static void timer_handler(Context *ctx) {
 
 static void keyboard_handler(Context *ctx) {}
 
-static void syscall_handler(Context *ctx) {
-    printf("%d ", ctx->eax);
+static void print_char_handler(Context *ctx) {
+    char c = (char) ctx->eax;
+    if (c == '\n') {
+        y++;
+        x = 0;
+    }
+    else if (c == '\r') x = 0;
+    else {
+        vga_print_char(c, x, y);
+        x++;
+    }
+    fixscreen();
 }
 
 u32 param;
-static void exit_impl(Context *ctx) {
+static void exit_handler(Context *ctx) {
     cleanup_user_stack();
-    printf("%d\n", ctx->eax);
-    param++;
-    start_usercode();
+    printf("---------\n");
+    printf("process exited with code: %d\n", ctx->eax);
+    endless_loop();
 }
 
 void universal_handler(Context *ctx) {
     assert(sizeof(Context) == 76);
+    u8 pl = ctx->cs & 0b11;
+    if (pl == KERNEL_PL) kernel_panic("Kernel panic: interrupt from kernel!\n");
     switch (ctx->vector) {
         case TIMER_VECTOR:
+            if (pl == 3) exit_handler(ctx);
             timer_handler(ctx);
             return;
         case KEYBOARD_VECTOR:
+            if (pl == 3) exit_handler(ctx);
             keyboard_handler(ctx);
             return;
-        case WRITE_VECTOR:
-            syscall_handler(ctx);
+        case PRINT_CHAR_VECTOR:
+            print_char_handler(ctx);
             return;
         case EXIT_VECTOR:
-            exit_impl(ctx);
+            exit_handler(ctx);
             return;
         case PAGE_FAULT_VECTOR:
-            PAGE_FAULT_HANDLER(EXP_NUM);
+            bool us = ctx->error_code & (1 << 2);
+            assert((pl == 3 && us == 1) || (pl == 0 && us == 0));
+            u32 cr2 = get_cr2();
+            if (cr2 < 0x200000) printf("NPE\n");
+            else if (cr2 < 0x400000) printf("SOE\n");
+            else if (cr2 < USER_STACK_POINTER) {
+                expand_user_stack(cr2);
+                return;
+            } else printf("UB: ");
+            exit_handler(ctx);
         default:
             print_context(ctx);
     }
