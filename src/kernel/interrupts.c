@@ -112,6 +112,7 @@ static void exit_handler(Context *ctx) {
     cleanup_process();
     current_process->terminated = true;
     assert(kalloc == kfree);
+    jump_to_next_process();
     //init_curr_process(0x20000, &consoles[0], 0);
     //jump_to_current_process();
     //endless_loop();

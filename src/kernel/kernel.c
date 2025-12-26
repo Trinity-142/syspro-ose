@@ -13,7 +13,6 @@ void kernel_entry() {
     pic8259_init_master(auto_eoi);
     pic8259_init_slave(auto_eoi);
     pic8259_turn(TIMER, true);
-    sti();
     init_console(&consoles[0], (Coords){0,0}, (Coords){VGA_WIDTH / 2 - 1, VGA_HEIGHT / 2 - 1});
     init_console(&consoles[1], (Coords){VGA_WIDTH / 2,0}, (Coords){VGA_WIDTH / 2 - 1, VGA_HEIGHT / 2 - 1});
     init_console(&consoles[2], (Coords){0,VGA_HEIGHT / 2}, (Coords){VGA_WIDTH / 2 - 1, VGA_HEIGHT/ 2 - 1});
@@ -26,6 +25,7 @@ void kernel_entry() {
     current_process++;
     init_curr_process(0x50000, &consoles[3], 0);
     current_process = processes;
+    sti();
     jump_to_current_process();
     endless_loop();
 }

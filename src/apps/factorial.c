@@ -1,6 +1,6 @@
 #include "../stdlib/stdlib.h"
 
-u32 factorial(int n) {
+u64 factorial(int n) {
     if (n == 0) return 1;
     u32 a = n * factorial(n - 1);
     printf("Factorial of %d: %d\n", n, a);
@@ -8,5 +8,5 @@ u32 factorial(int n) {
 }
 
 int main() {
-    factorial(10);
+    factorial(13);
 }
