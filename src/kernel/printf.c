@@ -7,35 +7,21 @@
 #include "vga.h"
 #include "printf.h"
 
-u32 x = 0;
-u32 y = 0;
+#include "userspace.h"
 
-void set_cursor(u32 new_x, u32 new_y) {
-    x = new_x;
-    y = new_y;
-}
-
-void fixscreen() {
-    if (x >= VGA_WIDTH) {
-        x = 0;
-        y++;
-    }
-
-    while (y >= VGA_HEIGHT) {
-        vga_scroll_down();
-        y--;
-    }
+void set_cursor(Coords cursor) {
+    current_process->console->cursor = cursor;
 }
 
 void putchar(char c) {
     if (c == '\n') {
-        y++;
-        x = 0;
+        current_process->console->cursor.y++;
+        current_process->console->cursor.x = current_process->console->start.x;
     }
-    else if (c == '\r') x = 0;
+    else if (c == '\r') current_process->console->cursor.x = current_process->console->start.x;
     else {
-        vga_print_char(c, x, y);
-        x++;
+        vga_print_char(c, current_process->console->cursor);
+        current_process->console->cursor.x++;
     }
     fixscreen();
 }
@@ -66,13 +52,6 @@ void print_signed(i32 number) {
         number *= -1;
     }
     print_unsigned(number, 10);
-}
-
-
-void init_printer() {
-    vga_clear_screen();
-    x = 0;
-    y = 0; 
 }
 
 void vprintf(const char* fmt, va_list args) {

@@ -81,23 +81,22 @@ void set_interrupt_dpl(u32 vector, u8 dpl) {
     idt[vector].dpl = dpl;
 }
 
-u32 global = 1;
 static void timer_handler(Context *ctx) {
-    global = 0;
 }
 
 static void keyboard_handler(Context *ctx) {}
 
 static void print_char_handler(Context *ctx) {
+    Console* console = current_process->console;
     char c = (char) ctx->eax;
     if (c == '\n') {
-        y++;
-        x = 0;
+        console->cursor.y++;
+        console->cursor.x = console->start.x;
     }
-    else if (c == '\r') x = 0;
+    else if (c == '\r') console->cursor.x = console->start.x;
     else {
-        vga_print_char(c, x, y);
-        x++;
+        vga_print_char(c, console->cursor);
+        console->cursor.x++;
     }
     fixscreen();
 }
@@ -113,14 +112,12 @@ static void exit_handler(Context *ctx) {
 void universal_handler(Context *ctx) {
     assert(sizeof(Context) == 76);
     u8 pl = ctx->cs & 0b11;
-    if (pl == KERNEL_PL) kernel_panic("Kernel panic: interrupt from kernel!\n");
+    //if (pl == KERNEL_PL) kernel_panic("Kernel panic: interrupt from kernel!\n");
     switch (ctx->vector) {
         case TIMER_VECTOR:
-            if (pl == 3) exit_handler(ctx);
             timer_handler(ctx);
             return;
         case KEYBOARD_VECTOR:
-            if (pl == 3) exit_handler(ctx);
             keyboard_handler(ctx);
             return;
         case PRINT_CHAR_VECTOR:

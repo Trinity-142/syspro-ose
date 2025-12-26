@@ -14,7 +14,7 @@
 #define PF(n) PAGE_FAULT_HANDLER_##n
 
 #define EXP_SETUP                                       															\
-	init_paging();																									\
+	init_pd();																									\
     vga_clear_screen();																								\
 	init_interrupts(INTERRUPT);																						\
 	set_interrupt_dpl(PRINT_CHAR_VECTOR, USER_PL);																	\

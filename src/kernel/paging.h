@@ -1,5 +1,6 @@
 #ifndef PAGING_H
 #define PAGING_H
+#include <stdarg.h>
 #include <stdbool.h>
 #include "types.h"
 
@@ -31,13 +32,11 @@ typedef struct {
 _Static_assert(sizeof(PageDirectoryEntry) == 4, "pde size != 4");
 #pragma pack(pop)
 
-extern PageDirectoryEntry* pd;
-
-void init_paging();
+PageDirectoryEntry* init_pd();
 void* alloc_user_code(u32 addr);
 void* alloc_user_stack();
 void cleanup_user_stack();
 void expand_user_stack(u32 addr);
-char** alloc_argc_argv(int argc, ...);
+char** alloc_argc_argv(int argc, va_list argv);
 
 #endif
