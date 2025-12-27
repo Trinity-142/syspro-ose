@@ -1,6 +1,4 @@
 #include "asm_utils.h"
-#include "experiments.h"
-#include "panic.h"
 #include "vga.h"
 #include "userspace.h"
 
@@ -28,7 +26,6 @@ void kernel_entry() {
     init_curr_process(0x50000, &consoles[3], 0);
     current_process = processes;
     */
-    endless_loop();
     current_process = processes;
     jump_to_current_process();
     endless_loop();

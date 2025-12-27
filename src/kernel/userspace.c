@@ -3,7 +3,6 @@
 #include <stdarg.h>
 
 #include "asm_utils.h"
-#include "experiments.h"
 #include "interrupts.h"
 
 Process processes[4];

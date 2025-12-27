@@ -6,7 +6,6 @@
 #include "types.h"
 #include "asm_utils.h"
 #include "assert.h"
-#include "experiments.h"
 #include "pic8259.h"
 #include "printf.h"
 #include "userspace.h"
