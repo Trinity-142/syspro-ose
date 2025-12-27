@@ -73,13 +73,13 @@ APPS_BIN = $(addsuffix _app.bin, $(addprefix .tmp/userspace/,$(APPS)))
 .tmp/os.bin: .tmp/kernel/kernel.bin $(APPS_BIN)
 		cp .tmp/kernel/kernel.bin $@
 		truncate -s $$((0x18400)) $@
-		cat .tmp/userspace/endless_inc_app.bin >> $@
+		cat .tmp/userspace/soe_app.bin >> $@
 		truncate -s $$((0x28400)) $@
-		cat .tmp/userspace/factorial_app.bin >> $@
+		cat .tmp/userspace/endless_inc_app.bin >> $@
 		truncate -s $$((0x38400)) $@
 		cat .tmp/userspace/foo_bar_baz_app.bin >> $@
 		truncate -s $$((0x48400)) $@
-		cat .tmp/userspace/soe_app.bin >> $@
+		cat .tmp/userspace/factorial_app.bin >> $@
 
 os.img:	.tmp/os.bin
 		dd if=/dev/zero of=os.img bs=1024 count=1440
