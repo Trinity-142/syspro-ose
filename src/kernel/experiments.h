@@ -10,9 +10,6 @@
 #define EXIT_HANDLER(n) EXIT(n)
 #define EXIT(n) EXIT_HANDLER_##n
 
-#define PAGE_FAULT_HANDLER(n) PF(n)
-#define PF(n) PAGE_FAULT_HANDLER_##n
-
 #define EXP_SETUP                                       															\
 	vga_clear_screen();																								\
     init_interrupts(INTERRUPT);																						\
