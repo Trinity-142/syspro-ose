@@ -83,8 +83,10 @@ void set_interrupt_dpl(u32 vector, u8 dpl) {
 }
 
 static void timer_handler(Context *ctx) {
+    /*
     current_process->ctx = *ctx;
     jump_to_next_process();
+    */
 }
 
 static void keyboard_handler(Context *ctx) {}
@@ -112,10 +114,10 @@ static void exit_handler(Context *ctx) {
     cleanup_process();
     current_process->terminated = true;
     assert(kalloc == kfree);
-    jump_to_next_process();
+    //jump_to_next_process();
     //init_curr_process(0x20000, &consoles[0], 0);
     //jump_to_current_process();
-    //endless_loop();
+    endless_loop();
 }
 
 void universal_handler(Context *ctx) {

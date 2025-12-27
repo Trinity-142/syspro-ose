@@ -1,6 +1,8 @@
 #include "mem.h"
 #include "types.h"
 #include "vga.h"
+
+#include "asm_utils.h"
 #include "printf.h"
 #include "userspace.h"
 
@@ -9,6 +11,8 @@ Console consoles[4];
 void vga_clear_screen() {
     void* vga_buffer = (void*) VGA_BUFFER;
     memzero(vga_buffer, VGA_SIZE);
+    write_u8(0x3D4, 0x0A);
+    write_u8(0x3D5, 0x20);
 }
 
 void vga_print_char(char c, Coords cursor) {

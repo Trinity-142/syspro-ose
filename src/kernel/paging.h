@@ -8,7 +8,7 @@
 #define RAM (RAM_MB * MB)
 #define PAGE 4096
 #define POOL_START 0x400000
-#define POOL_END RAM
+#define POOL_END (5 * MB)
 
 extern u32 kalloc;
 extern u32 kfree;
