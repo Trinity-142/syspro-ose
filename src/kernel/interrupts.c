@@ -10,6 +10,8 @@
 #include "pic8259.h"
 #include "printf.h"
 #include "userspace.h"
+#include "vga.h"
+#include "paging.h"
 
 static bool has_error_code(u32 vector) {
     switch (vector) {
@@ -80,23 +82,18 @@ void set_interrupt_dpl(u32 vector, u8 dpl) {
     idt[vector].dpl = dpl;
 }
 
-u32 global = 1;
 static void timer_handler(Context *ctx) {
-    global = 0;
+    TIMER_HANDLER(EXP_NUM);
 }
 
 static void keyboard_handler(Context *ctx) {}
 
-static void syscall_handler(Context *ctx) {
-    printf("%d ", ctx->eax);
+static void print_char_handler(Context *ctx) {
+    printf("%c", ctx->eax);
 }
 
-u32 param;
-static void exit_impl(Context *ctx) {
-    cleanup_user_stack();
-    printf("%d\n", ctx->eax);
-    param++;
-    start_usercode();
+static void exit_handler(Context *ctx) {
+    EXIT_HANDLER(EXP_NUM);
 }
 
 void universal_handler(Context *ctx) {
@@ -108,14 +105,25 @@ void universal_handler(Context *ctx) {
         case KEYBOARD_VECTOR:
             keyboard_handler(ctx);
             return;
-        case WRITE_VECTOR:
-            syscall_handler(ctx);
+        case PRINT_CHAR_VECTOR:
+            print_char_handler(ctx);
             return;
         case EXIT_VECTOR:
-            exit_impl(ctx);
+            exit_handler(ctx);
             return;
         case PAGE_FAULT_VECTOR:
-            PAGE_FAULT_HANDLER(EXP_NUM);
+            u8 pl = ctx->cs & 0b11;
+            bool us = ctx->error_code & (1 << 2);
+            assert((pl == 3 && us == 1) || (pl == 0 && us == 0));
+            u32 cr2 = get_cr2();
+            printf("CR2: %x\n", cr2);
+            if (cr2 < 0x200000) printf("NPE\n");
+            else if (cr2 < 0x400000) printf("SOE\n");
+            else if (cr2 < USER_STACK_POINTER) {
+                expand_user_stack(cr2);
+                return;
+            } else printf("UB\n");
+            exit_handler(ctx);
         default:
             print_context(ctx);
     }

@@ -1,4 +1,4 @@
-%include "src/consts.inc"
+%include "src/kernel/consts.inc"
 
 [GLOBAL cli]
 cli:
@@ -29,11 +29,6 @@ set_gprs:
 [GLOBAL division_by_zero]
 division_by_zero:
     div eax
-    ret
-
-[GLOBAL write]
-write:
-    int WRITE_VECTOR
     ret
 
 [GLOBAL sti]
@@ -169,25 +164,7 @@ get_cr2:
     mov eax, cr2
     ret
 
-[GLOBAL exit]
-exit:
-    mov eax, [esp + 4]
-    int 0x31
-
 [GLOBAL endless_rec]
 endless_rec:
     sub esp, 4092
     call endless_rec
-
-[GLOBAL n_rec]
-n_rec:
-    mov eax, [esp + 4]
-    cmp eax, 0
-    jz to_ret
-        sub esp, 40952 ;4088 ;40952
-        sub eax, 1
-        push eax
-        call n_rec
-        add esp, 40956 ;4092 ;40956
-    to_ret:
-        ret

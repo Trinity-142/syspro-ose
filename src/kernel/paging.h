@@ -1,13 +1,17 @@
 #ifndef PAGING_H
 #define PAGING_H
+#include <stdarg.h>
 #include <stdbool.h>
 #include "types.h"
 
-#define MB (2 << 20)
+#define MB (1 << 20)
 #define RAM (RAM_MB * MB)
 #define PAGE 4096
 #define POOL_START 0x400000
-#define POOL_END RAM
+#define POOL_END (10 * MB)
+
+extern u32 kalloc;
+extern u32 kfree;
 
 #pragma pack(push, 1)
 typedef struct {
@@ -31,11 +35,11 @@ typedef struct {
 _Static_assert(sizeof(PageDirectoryEntry) == 4, "pde size != 4");
 #pragma pack(pop)
 
-extern PageDirectoryEntry* pd;
-
-void init_paging();
+PageDirectoryEntry* init_pd();
+void* alloc_user_code(u32 addr);
 void* alloc_user_stack();
-void cleanup_user_stack();
+void cleanup_process();
 void expand_user_stack(u32 addr);
+char** alloc_argc_argv(int argc, va_list argv);
 
 #endif

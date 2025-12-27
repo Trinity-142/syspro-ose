@@ -5,4 +5,5 @@
 
 void kernel_entry() {
     EXP_SETUP;
+    APPS(EXP_NUM);
 }

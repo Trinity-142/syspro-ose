@@ -1,49 +1,10 @@
-#include <stdarg.h>
-#include <stdbool.h>
-
-#include "asm_utils.h"
-#include "assert.h"
-#include "panic.h"
+#include "stdlib.h"
 #include "types.h"
-#include "vga.h"
-#include "printf.h"
-
-static u32 x = 0;
-static u32 y = 0;
-
-void set_cursor(u32 new_x, u32 new_y) {
-    x = new_x;
-    y = new_y;
-}
-
-void fixscreen() {
-    if (x >= VGA_WIDTH) {
-        x = 0;
-        y++;
-    }
-
-    while (y >= VGA_HEIGHT) {
-        vga_scroll_down();
-        y--;
-    }
-}
-
-void putchar(char c) {
-    if (c == '\n') {
-        y++;
-        x = 0;
-    }
-    else if (c == '\r') x = 0;
-    else {
-        vga_print_char(c, x, y);
-        x++;
-    }
-    fixscreen();
-}
+#include <stdbool.h>
 
 void print_string(const char* str) {
     for (const char* c = str; *c; ++c) {
-        putchar(*c);
+        print_char(*c);
     }
 }
 
@@ -53,7 +14,6 @@ void print_unsigned(u32 number, u32 radix) {
     string[--i] = '\0';
 
     do {
-        assert(i > 0);
         u32 digit = number % radix;
         number /= radix;
         string[--i] = (digit < 10) ? ('0' + digit) : ('a' + digit - 10);
@@ -63,17 +23,10 @@ void print_unsigned(u32 number, u32 radix) {
 
 void print_signed(i32 number) {
     if (number < 0) {
-        putchar('-');
+        print_char('-');
         number *= -1;
     }
     print_unsigned(number, 10);
-}
-
-
-void init_printer() {
-    vga_clear_screen();
-    x = 0;
-    y = 0; 
 }
 
 void vprintf(const char* fmt, va_list args) {
@@ -101,20 +54,20 @@ void vprintf(const char* fmt, va_list args) {
                 }
                 case 'c': {
                     char c = va_arg(args, i32);
-                    putchar(c);
-                    break; 
+                    print_char(c);
+                    break;
                 }
                 case 's': {
                     const char* string = va_arg(args, const char*);
                     print_string(string);
                     break;
                 }
-                case '%': 
-                    putchar('%');
+                case '%':
+                    print_char('%');
                     break;
-            
+
                 default:
-                    kernel_panic("Kernel panic: unknown type specifier: %c\n", *c);
+                    break;
             }
             percent = false;
 
@@ -124,11 +77,11 @@ void vprintf(const char* fmt, va_list args) {
                     percent = true;
                     break;
                 default:
-                    putchar(*c);
+                    print_char(*c);
                     break;
-            }    
+            }
         }
-    } 
+    }
 }
 
 void printf(const char* fmt, ...) {

@@ -1,11 +1,11 @@
 SECTIONS {
-    . = 0x7C00;
+    . = 0x800000;
 
-    .boot : {
-        .tmp/boot.o (.text);
+    .startup : {
+        .tmp/userspace/startup.asm.o (.text);
     }
 
-    .kernel : {
+    .userspace : {
         *(.text);
         *(.rodata);
         *(.rodata.*);

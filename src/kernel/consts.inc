@@ -9,4 +9,4 @@
 
 %define TSS_LIMIT 107
 
-%define WRITE_VECTOR 0x30
+%define PRINT_CHAR_VECTOR 0x31

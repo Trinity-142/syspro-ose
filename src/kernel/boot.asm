@@ -1,6 +1,6 @@
 [BITS 16]
 
-%include "src/consts.inc"
+%include "src/kernel/consts.inc"
 
 cli
 
