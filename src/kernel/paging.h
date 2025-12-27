@@ -4,11 +4,11 @@
 #include <stdbool.h>
 #include "types.h"
 
-#define MB (2 << 20)
+#define MB (1 << 20)
 #define RAM (RAM_MB * MB)
 #define PAGE 4096
 #define POOL_START 0x400000
-#define POOL_END (5 * MB)
+#define POOL_END (10 * MB)
 
 extern u32 kalloc;
 extern u32 kfree;

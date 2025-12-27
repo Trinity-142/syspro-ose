@@ -89,18 +89,7 @@ static void timer_handler(Context *ctx) {
 static void keyboard_handler(Context *ctx) {}
 
 static void print_char_handler(Context *ctx) {
-    Console* console = current_process->console;
-    char c = (char) ctx->eax;
-    if (c == '\n') {
-        console->cursor.y++;
-        console->cursor.x = console->start.x;
-    }
-    else if (c == '\r') console->cursor.x = console->start.x;
-    else {
-        vga_print_char(c, console->cursor);
-        console->cursor.x++;
-    }
-    fixscreen();
+    printf("%c", ctx->eax);
 }
 
 static void exit_handler(Context *ctx) {

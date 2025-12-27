@@ -13,7 +13,7 @@ void init_context(Context* ctx, void (*user_entry)(), void* user_stack, int argc
     ctx->ecx = (u32) argv;
     ctx->ss_user = APP_DATA | USER_PL;
     ctx->esp_user = (u32) user_stack;
-    ctx->eflags = get_eflags() & 0xFFFFCFFF | 0x200; // IOPL = 0; IF = 1
+    ctx->eflags = get_eflags() & ~(0b11 << 12) | (0b1 << 9); // IOPL = 0; IF = 1
     ctx->cs = APP_CODE | USER_PL;
     ctx->eip = (u32) user_entry;
 
