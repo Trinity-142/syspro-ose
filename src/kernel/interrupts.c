@@ -6,6 +6,7 @@
 #include "types.h"
 #include "asm_utils.h"
 #include "assert.h"
+#include "experiments.h"
 #include "pic8259.h"
 #include "printf.h"
 #include "userspace.h"
@@ -82,10 +83,7 @@ void set_interrupt_dpl(u32 vector, u8 dpl) {
 }
 
 static void timer_handler(Context *ctx) {
-    /*
-    current_process->ctx = *ctx;
-    jump_to_next_process();
-    */
+    TIMER_HANDLER(EXP_NUM);
 }
 
 static void keyboard_handler(Context *ctx) {}
@@ -105,24 +103,12 @@ static void print_char_handler(Context *ctx) {
     fixscreen();
 }
 
-u32 param;
 static void exit_handler(Context *ctx) {
-    printf("---------\n");
-    printf("process exited with code: %d\n", ctx->eax);
-    turn_paging_off();
-    cleanup_process();
-    current_process->terminated = true;
-    assert(kalloc == kfree);
-    //jump_to_next_process();
-    //init_curr_process(0x20000, &consoles[0], 0);
-    //jump_to_current_process();
-    endless_loop();
+    EXIT_HANDLER(EXP_NUM);
 }
 
 void universal_handler(Context *ctx) {
     assert(sizeof(Context) == 76);
-    u8 pl = ctx->cs & 0b11;
-    //if (pl == KERNEL_PL) kernel_panic("Kernel panic: interrupt from kernel!\n");
     switch (ctx->vector) {
         case TIMER_VECTOR:
             timer_handler(ctx);
@@ -137,6 +123,7 @@ void universal_handler(Context *ctx) {
             exit_handler(ctx);
             return;
         case PAGE_FAULT_VECTOR:
+            u8 pl = ctx->cs & 0b11;
             bool us = ctx->error_code & (1 << 2);
             assert((pl == 3 && us == 1) || (pl == 0 && us == 0));
             u32 cr2 = get_cr2();

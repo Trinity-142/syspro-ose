@@ -10,5 +10,7 @@ void dive(int n) {
 }
 
 int main() {
+    //exit(52);
+    //*((u32*)0x42) = 0;
     dive(10000);
 }

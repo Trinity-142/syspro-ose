@@ -9,9 +9,6 @@
 #define PRINT_CHAR_VECTOR 0x31
 #define PAGE_FAULT_VECTOR 14
 
-extern u32 global;
-extern u32 N;
-
 typedef enum {
     INTERRUPT = 0b110,
     TRAP = 0b111
