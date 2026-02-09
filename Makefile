@@ -3,7 +3,7 @@
 KERNEL_SIZE ?= 0x58400
 DEBUG ?= 0
 RAM_MB ?= 1024
-EXP_NUM ?= 1
+EXP_NUM ?= 7 
 # Build tools
 ifeq ($(DEBUG),1)
 	CFLAGS = -DDEBUG -g -std=c99 -m32 -O0 -ffreestanding -no-pie -fno-pie -mno-sse -fno-stack-protector
